@@ -1,0 +1,17 @@
+variables:
+  DOCKER_BUILDKIT: 1
+
+stages:
+  - build
+
+build:
+  image: docker:20.10.16
+  stage: build
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+  variables:
+    IMAGE_TAG_LATEST: $CI_REGISTRY_IMAGE:latest
+    IMAGE_TAG_COMMIT: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+  script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
+    - docker buildx build --platform linux/amd64 -t $IMAGE_TAG_LATEST -t $IMAGE_TAG_COMMIT --push --pull .

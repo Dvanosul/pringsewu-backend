@@ -1,0 +1,11 @@
+﻿obj/
+bin/
+logs/*
+Debug/*
+.DS_Store
+.vs
+.vscode
+mbg-integration-portal.sln.DotSettings.user
+.idea
+appsettings.Development.json
+NuGet.Config

@@ -1,0 +1,6 @@
+@pringsewu_HostAddress = http://localhost:5452
+
+GET {{pringsewu_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
