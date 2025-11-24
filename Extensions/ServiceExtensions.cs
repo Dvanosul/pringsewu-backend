@@ -5,7 +5,9 @@ using Sindika.AspNet.Common.Interfaces;
 using Sindika.AspNet.Common.Models;
 using Sindika.AspNet.Common.Services;
 using Sindika.AspNet.app015.Application.Interfaces.Services;
+using Sindika.AspNet.app015.Application.Interfaces.Services.Blockchain;
 using Sindika.AspNet.app015.Application.Services;
+using Sindika.AspNet.app015.Application.Services.Blockchain;
 using Sindika.AspNet.app015.Infrastructure.DataContext;
 
 namespace Sindika.AspNet.app015.Extensions
@@ -47,6 +49,11 @@ namespace Sindika.AspNet.app015.Extensions
             services.AddScoped<ISubDistrictService, SubDistrictService>();
 
             services.AddScoped<ILocationService, LocationService>();
+
+            services.AddScoped<IBlockchainDonationService, BlockchainDonationService>();
+            services.AddScoped<IBlockchainEventService, BlockchainEventService>();
+            services.AddScoped<IBlockchainWithdrawalService, BlockchainWithdrawalService>();
+            services.AddScoped<IBlockchainGalleryService, BlockchainGalleryService>();
 
             return services;
         }

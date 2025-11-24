@@ -1,0 +1,106 @@
+using Microsoft.AspNetCore.Mvc;
+using Sindika.AspNet.app015.Application.DTOs.Blockchain;
+using Sindika.AspNet.app015.Application.Interfaces.Services.Blockchain;
+using Sindika.AspNet.Response;
+using Sindika.AspNet.Authentication.Attributes;
+
+namespace Sindika.AspNet.app015.API.Controllers
+{
+    [Page("blockchain-gallery", "Blockchain gallery data from VaFund API")]
+    [PublicScope]
+    [ApiController]
+    [Route("api/v1/blockchain/gallery")]
+    public class BlockchainGalleryController : ControllerBase
+    {
+        private readonly IBlockchainGalleryService _blockchainGalleryService;
+
+        public BlockchainGalleryController(IBlockchainGalleryService blockchainGalleryService)
+        {
+            _blockchainGalleryService = blockchainGalleryService;
+        }
+
+        [Event("insert")]
+        [HttpPost("create")]
+        public async Task<IActionResult> CreateGallery([FromBody] CreateBlockchainGalleryRequest request)
+        {
+            var response = await _blockchainGalleryService.CreateGalleryAsync(request);
+            
+            if (!response.Success)
+            {
+                return BadRequest(ResponseHelper.Success<object>(null, response.Message));
+            }
+
+            return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
+        }
+
+        [Event("view")]
+        [HttpGet("get/{id}")]
+        public async Task<IActionResult> GetGallery(string id)
+        {
+            var response = await _blockchainGalleryService.GetGalleryAsync(id);
+            
+            if (!response.Success)
+            {
+                return NotFound(ResponseHelper.Success<object>(null, response.Message));
+            }
+
+            return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
+        }
+
+        [Event("view")]
+        [HttpGet("list")]
+        public async Task<IActionResult> GetAllGalleries()
+        {
+            var response = await _blockchainGalleryService.GetAllGalleriesAsync();
+            
+            if (!response.Success)
+            {
+                return BadRequest(ResponseHelper.Success<object>(null, response.Message));
+            }
+
+            return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
+        }
+
+        [Event("view")]
+        [HttpGet("event/{eventCode}")]
+        public async Task<IActionResult> GetGalleriesByEventCode(string eventCode)
+        {
+            var response = await _blockchainGalleryService.GetGalleriesByEventCodeAsync(eventCode);
+            
+            if (!response.Success)
+            {
+                return BadRequest(ResponseHelper.Success<object>(null, response.Message));
+            }
+
+            return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
+        }
+
+        [Event("update")]
+        [HttpPut("update/{id}")]
+        public async Task<IActionResult> UpdateGallery(string id, [FromBody] UpdateBlockchainGalleryRequest request)
+        {
+            var response = await _blockchainGalleryService.UpdateGalleryAsync(id, request);
+            
+            if (!response.Success)
+            {
+                return BadRequest(ResponseHelper.Success<object>(null, response.Message));
+            }
+
+            return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
+        }
+
+        [Event("delete")]
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> DeleteGallery(string id)
+        {
+            var response = await _blockchainGalleryService.DeleteGalleryAsync(id);
+            
+            if (!response.Success)
+            {
+                return BadRequest(ResponseHelper.Success<object>(null, response.Message));
+            }
+
+            return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
+        }
+    }
+}
