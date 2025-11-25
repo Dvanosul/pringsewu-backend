@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using Sindika.AspNet.app015.Application.DTOs.Blockchain;
+using Sindika.AspNet.app015.API.Models.Blockchain;
 using Sindika.AspNet.app015.Application.Interfaces.Services.Blockchain;
 using Sindika.AspNet.Response;
+using Sindika.AspNet.Request;
 using Sindika.AspNet.Authentication.Attributes;
 
 namespace Sindika.AspNet.app015.API.Controllers
@@ -21,9 +22,9 @@ namespace Sindika.AspNet.app015.API.Controllers
 
         [Event("insert")]
         [HttpPost("create")]
-        public async Task<IActionResult> CreateGallery([FromBody] CreateBlockchainGalleryRequest request)
+        public async Task<IActionResult> CreateGallery([FromBody] BaseRequest<CreateBlockchainGalleryRequest> request)
         {
-            var response = await _blockchainGalleryService.CreateGalleryAsync(request);
+            var response = await _blockchainGalleryService.CreateGalleryAsync(request.Data);
             
             if (!response.Success)
             {
@@ -77,9 +78,9 @@ namespace Sindika.AspNet.app015.API.Controllers
 
         [Event("update")]
         [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateGallery(string id, [FromBody] UpdateBlockchainGalleryRequest request)
+        public async Task<IActionResult> UpdateGallery(string id, [FromBody] BaseRequest<UpdateBlockchainGalleryRequest> request)
         {
-            var response = await _blockchainGalleryService.UpdateGalleryAsync(id, request);
+            var response = await _blockchainGalleryService.UpdateGalleryAsync(id, request.Data);
             
             if (!response.Success)
             {

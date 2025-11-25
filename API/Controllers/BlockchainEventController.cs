@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using Sindika.AspNet.app015.Application.DTOs.Blockchain;
+using Sindika.AspNet.app015.API.Models.Blockchain;
 using Sindika.AspNet.app015.Application.Interfaces.Services.Blockchain;
 using Sindika.AspNet.Response;
+using Sindika.AspNet.Request;
 using Sindika.AspNet.Authentication.Attributes;
 
 namespace Sindika.AspNet.app015.API.Controllers
@@ -21,9 +22,9 @@ namespace Sindika.AspNet.app015.API.Controllers
 
         [Event("insert")]
         [HttpPost("create")]
-        public async Task<IActionResult> CreateEvent([FromBody] CreateBlockchainEventRequest request)
+        public async Task<IActionResult> CreateEvent([FromBody] BaseRequest<CreateBlockchainEventRequest> request)
         {
-            var response = await _blockchainEventService.CreateEventAsync(request);
+            var response = await _blockchainEventService.CreateEventAsync(request.Data);
             
             if (!response.Success)
             {
@@ -77,9 +78,9 @@ namespace Sindika.AspNet.app015.API.Controllers
 
         [Event("update")]
         [HttpPut("status/{code}")]
-        public async Task<IActionResult> UpdateEventStatus(string code, [FromBody] UpdateBlockchainEventStatusRequest request)
+        public async Task<IActionResult> UpdateEventStatus(string code, [FromBody] BaseRequest<UpdateBlockchainEventStatusRequest> request)
         {
-            var response = await _blockchainEventService.UpdateEventStatusAsync(code, request);
+            var response = await _blockchainEventService.UpdateEventStatusAsync(code, request.Data);
             
             if (!response.Success)
             {
@@ -91,9 +92,9 @@ namespace Sindika.AspNet.app015.API.Controllers
 
         [Event("update")]
         [HttpPut("update/{code}")]
-        public async Task<IActionResult> UpdateEvent(string code, [FromBody] UpdateBlockchainEventRequest request)
+        public async Task<IActionResult> UpdateEvent(string code, [FromBody] BaseRequest<UpdateBlockchainEventRequest> request)
         {
-            var response = await _blockchainEventService.UpdateEventAsync(code, request);
+            var response = await _blockchainEventService.UpdateEventAsync(code, request.Data);
             
             if (!response.Success)
             {

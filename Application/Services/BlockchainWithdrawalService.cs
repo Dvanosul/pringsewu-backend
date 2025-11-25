@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
-using Sindika.AspNet.app015.Application.DTOs.Blockchain;
+using Sindika.AspNet.app015.API.Models.Blockchain;
+using Sindika.AspNet.app015.Application.DTOs.Blockchain.Withdrawal;
 using Sindika.AspNet.app015.Application.Interfaces.Services.Blockchain;
 
 namespace Sindika.AspNet.app015.Application.Services.Blockchain

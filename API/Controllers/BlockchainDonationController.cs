@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using Sindika.AspNet.app015.Application.DTOs.Blockchain;
+using Sindika.AspNet.app015.API.Models.Blockchain;
 using Sindika.AspNet.app015.Application.Interfaces.Services.Blockchain;
 using Sindika.AspNet.Response;
+using Sindika.AspNet.Request;
 using Sindika.AspNet.Authentication.Attributes;
 
 namespace Sindika.AspNet.app015.API.Controllers
@@ -21,9 +22,9 @@ namespace Sindika.AspNet.app015.API.Controllers
 
         [Event("insert")]
         [HttpPost("create")]
-        public async Task<IActionResult> CreateDonation([FromBody] CreateBlockchainDonationRequest request)
+        public async Task<IActionResult> CreateDonation([FromBody] BaseRequest<CreateBlockchainDonationRequest> request)
         {
-            var response = await _blockchainDonationService.CreateDonationAsync(request);
+            var response = await _blockchainDonationService.CreateDonationAsync(request.Data);
             
             if (!response.Success)
             {
