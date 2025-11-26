@@ -42,7 +42,7 @@ namespace Sindika.AspNet.app015.Application.Services.Blockchain
 
         public async Task<PaymentResponseDTO> CreateDonationPaymentAsync(CreateBlockchainDonationRequest request)
         {
-            var orderId = request.DonationId;
+            var orderId = Guid.NewGuid().ToString();
             
             var snapRequest = new SnapTransactionRequest
             {
@@ -61,7 +61,7 @@ namespace Sindika.AspNet.app015.Application.Services.Blockchain
 
             var pendingDonation = new PendingDonationDTO
             {
-                DonationId = request.DonationId,
+                DonationId = orderId,
                 SenderName = request.SenderName,
                 Amount = request.Amount,
                 Message = request.Message,
@@ -70,7 +70,7 @@ namespace Sindika.AspNet.app015.Application.Services.Blockchain
             };
 
             await _pendingDonationService.StorePendingDonationAsync(orderId, pendingDonation);
-            _logger.LogInformation("Created payment for donation {DonationId}, waiting for payment confirmation", request.DonationId);
+            _logger.LogInformation("Created payment for donation {DonationId}, waiting for payment confirmation", orderId);
 
             return new PaymentResponseDTO
             {
@@ -83,16 +83,16 @@ namespace Sindika.AspNet.app015.Application.Services.Blockchain
         {
             try
             {
-                var request = new CreateBlockchainDonationRequest
+                var requestWithId = new
                 {
-                    DonationId = pendingDonation.DonationId,
-                    SenderName = pendingDonation.SenderName,
-                    Amount = pendingDonation.Amount,
-                    Message = pendingDonation.Message,
-                    EventCode = pendingDonation.EventCode
+                    donationId = pendingDonation.DonationId,
+                    senderName = pendingDonation.SenderName,
+                    amount = pendingDonation.Amount,
+                    message = pendingDonation.Message,
+                    eventCode = pendingDonation.EventCode
                 };
 
-                var json = JsonSerializer.Serialize(request);
+                var json = JsonSerializer.Serialize(requestWithId);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
                 var response = await _httpClient.PostAsync($"{_baseUrl}/api/donations", content);
                 
@@ -103,7 +103,7 @@ namespace Sindika.AspNet.app015.Application.Services.Blockchain
 
                 if (result.Success)
                 {
-                    await InvalidateDonationCache(request.EventCode);
+                    await InvalidateDonationCache(pendingDonation.EventCode);
                     _logger.LogInformation("Successfully created donation {DonationId} in blockchain after payment confirmation", pendingDonation.DonationId);
                 }
 

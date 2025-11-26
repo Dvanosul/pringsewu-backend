@@ -31,7 +31,15 @@ namespace Sindika.AspNet.app015.Application.Services.Blockchain
         {
             try
             {
-                var json = JsonSerializer.Serialize(request);
+                var galleryId = Guid.NewGuid().ToString();
+                var requestWithId = new
+                {
+                    id = galleryId,
+                    eventCode = request.EventCode,
+                    imageURL = request.ImageURL,
+                    description = request.Description
+                };
+                var json = JsonSerializer.Serialize(requestWithId);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
                 var response = await _httpClient.PostAsync($"{_baseUrl}/api/gallery", content);
                 

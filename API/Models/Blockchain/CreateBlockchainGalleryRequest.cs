@@ -6,10 +6,6 @@ namespace Sindika.AspNet.app015.API.Models.Blockchain
     public class CreateBlockchainGalleryRequest
     {
         [Mandatory]
-        [JsonPropertyName("id")]
-        public string Id { get; set; } = string.Empty;
-
-        [Mandatory]
         [JsonPropertyName("eventCode")]
         public string EventCode { get; set; } = string.Empty;
 

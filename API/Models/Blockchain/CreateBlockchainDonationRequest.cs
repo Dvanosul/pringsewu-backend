@@ -6,10 +6,6 @@ namespace Sindika.AspNet.app015.API.Models.Blockchain
     public class CreateBlockchainDonationRequest
     {
         [Mandatory]
-        [JsonPropertyName("donationId")]
-        public string DonationId { get; set; } = string.Empty;
-
-        [Mandatory]
         [MaxLength(255)]
         [JsonPropertyName("senderName")]
         public string SenderName { get; set; } = string.Empty;
