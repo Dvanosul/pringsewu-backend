@@ -1,9 +1,16 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 using System.Text.Json;
 using Sindika.AspNet.app015.API.Models.Blockchain;
 using Sindika.AspNet.app015.Application.DTOs.Blockchain.Donation;
+using Sindika.AspNet.app015.Application.DTOs.Midtrans;
 using Sindika.AspNet.app015.Application.Interfaces.Services.Blockchain;
+using Sindika.AspNet.app015.Application.Interfaces.Services;
 using Sindika.AspNet.Common.Interfaces;
+using Sindika.AspNet.Midtrans.Contracts;
+using Sindika.AspNet.Midtrans.Models.Request.Snap;
+using Sindika.AspNet.Midtrans.Models.Common;
+using Sindika.AspNet.Midtrans.Exceptions;
 
 namespace Sindika.AspNet.app015.Application.Services.Blockchain
 {
@@ -12,6 +19,8 @@ namespace Sindika.AspNet.app015.Application.Services.Blockchain
         private readonly HttpClient _httpClient;
         private readonly ILogger<BlockchainDonationService> _logger;
         private readonly ICacheService _cacheService;
+        private readonly IPendingDonationService _pendingDonationService;
+        private readonly IMidtransClient _midtransClient;
         private readonly string _baseUrl;
         private readonly TimeSpan _cacheExpiration = TimeSpan.FromMinutes(5);
 
@@ -19,18 +28,70 @@ namespace Sindika.AspNet.app015.Application.Services.Blockchain
             IHttpClientFactory httpClientFactory,
             IConfiguration configuration,
             ILogger<BlockchainDonationService> logger,
-            ICacheService cacheService)
+            ICacheService cacheService,
+            IPendingDonationService pendingDonationService,
+            IMidtransClient midtransClient)
         {
             _httpClient = httpClientFactory.CreateClient();
             _logger = logger;
             _cacheService = cacheService;
+            _pendingDonationService = pendingDonationService;
+            _midtransClient = midtransClient;
             _baseUrl = configuration["VaFundApi:BaseUrl"] ?? "http://localhost:3000";
         }
 
-        public async Task<BlockchainDonationSingleResponse> CreateDonationAsync(CreateBlockchainDonationRequest request)
+        public async Task<PaymentResponseDTO> CreateDonationPaymentAsync(CreateBlockchainDonationRequest request)
+        {
+            var orderId = request.DonationId;
+            
+            var snapRequest = new SnapTransactionRequest
+            {
+                TransactionDetails = new TransactionDetails
+                {
+                    OrderId = orderId,
+                    GrossAmount = ParseAmount(request.Amount)
+                },
+                CustomerDetails = new CustomerDetails
+                {
+                    FirstName = request.SenderName
+                }
+            };
+
+            var response = await _midtransClient.Snap.CreateTransactionAsync(snapRequest);
+
+            var pendingDonation = new PendingDonationDTO
+            {
+                DonationId = request.DonationId,
+                SenderName = request.SenderName,
+                Amount = request.Amount,
+                Message = request.Message,
+                EventCode = request.EventCode,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _pendingDonationService.StorePendingDonationAsync(orderId, pendingDonation);
+            _logger.LogInformation("Created payment for donation {DonationId}, waiting for payment confirmation", request.DonationId);
+
+            return new PaymentResponseDTO
+            {
+                Token = response.Token,
+                RedirectUrl = response.RedirectUrl
+            };
+        }
+
+        public async Task<BlockchainDonationSingleResponse> CreateDonationInBlockchainAsync(PendingDonationDTO pendingDonation)
         {
             try
             {
+                var request = new CreateBlockchainDonationRequest
+                {
+                    DonationId = pendingDonation.DonationId,
+                    SenderName = pendingDonation.SenderName,
+                    Amount = pendingDonation.Amount,
+                    Message = pendingDonation.Message,
+                    EventCode = pendingDonation.EventCode
+                };
+
                 var json = JsonSerializer.Serialize(request);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
                 var response = await _httpClient.PostAsync($"{_baseUrl}/api/donations", content);
@@ -43,20 +104,29 @@ namespace Sindika.AspNet.app015.Application.Services.Blockchain
                 if (result.Success)
                 {
                     await InvalidateDonationCache(request.EventCode);
-                    _logger.LogInformation("Invalidated donation cache after creating new donation");
+                    _logger.LogInformation("Successfully created donation {DonationId} in blockchain after payment confirmation", pendingDonation.DonationId);
                 }
 
                 return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating donation in blockchain");
+                _logger.LogError(ex, "Error creating donation {DonationId} in blockchain", pendingDonation.DonationId);
                 return new BlockchainDonationSingleResponse
                 {
                     Success = false,
                     Message = $"Error: {ex.Message}"
                 };
             }
+        }
+
+        private static decimal ParseAmount(string requestedAmount)
+        {
+            if (decimal.TryParse(requestedAmount, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsedAmount))
+            {
+                return parsedAmount;
+            }
+            return 0;
         }
 
         private async Task InvalidateDonationCache(string? eventCode = null)

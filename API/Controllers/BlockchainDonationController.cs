@@ -25,8 +25,13 @@ namespace Sindika.AspNet.app015.API.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> CreateDonation([FromBody] BaseRequest<CreateBlockchainDonationRequest> request)
         {
-            var response = await _blockchainDonationService.CreateDonationAsync(request.Data);
-            return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
+            var paymentResponse = await _blockchainDonationService.CreateDonationPaymentAsync(request.Data);
+            return Ok(ResponseHelper.Success<object>(new
+            {
+                DonationId = request.Data.DonationId,
+                Status = "pending_payment",
+                Payment = paymentResponse
+            }, "Payment created. Donation will be recorded after payment is confirmed."));
         }
 
         [Event("view")]

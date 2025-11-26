@@ -16,7 +16,7 @@
     <PackageReference Include="Sindika.AspNet.Connection" Version="1.5.5" />
     <PackageReference Include="Sindika.AspNet.Enrichment" Version="1.1.0" />
     <PackageReference Include="Sindika.AspNet.Exception" Version="1.0.0" />
-    <PackageReference Include="Sindika.AspNet.Midtrans" Version="1.1.0" />
+    <PackageReference Include="Sindika.AspNet.Midtrans" Version="1.1.1" />
     <PackageReference Include="Sindika.AspNet.QueryBuilder" Version="1.2.2" />
     <PackageReference Include="Sindika.AspNet.RequestResponse" Version="1.3.0" />
     <PackageReference Include="Sindika.AspNet.Storage" Version="1.2.1" />

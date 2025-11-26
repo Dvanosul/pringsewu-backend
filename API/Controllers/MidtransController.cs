@@ -59,13 +59,18 @@ namespace Sindika.AspNet.app015.API.Controllers
         }
 
         [Event("webhook")]
-        [HttpPost("webhooks/midtrans")]
+        [HttpPost("webhooks/notification")]
         [ValidateMidtransSignature]
-        public IActionResult HandleWebhook([ModelBinder(BinderType = typeof(MidtransNotificationBinder))] MidtransNotification notification)
+        public async Task<IActionResult> HandleWebhook([ModelBinder(BinderType = typeof(MidtransNotificationBinder))] MidtransNotification notification)
         {
             _logger.LogInformation("Received midtrans notification for order {OrderId} status {Status}", notification.OrderId, notification.TransactionStatus);
-            // delegate handling to service
-            _midtransService.HandleWebhookAsync(notification);
+            
+            var result = await _midtransService.HandleWebhookAsync(notification);
+
+            if (result is not null && result.Success)
+            {
+                return Ok(ResponseHelper.Success<object>(result.Data, "Payment confirmed, donation created successfully"));
+            }
 
             return Ok(ResponseHelper.Success<object>(null, "Webhook processed"));
         }

@@ -13,7 +13,7 @@ namespace Sindika.AspNet.app015.API.Models.Blockchain
         [MaxLength(255)]
         [JsonPropertyName("senderName")]
         public string SenderName { get; set; } = string.Empty;
-
+        
         [Mandatory]
         [JsonPropertyName("amount")]
         public string Amount { get; set; } = string.Empty;

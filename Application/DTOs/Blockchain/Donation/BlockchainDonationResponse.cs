@@ -1,3 +1,5 @@
+using Sindika.AspNet.app015.Application.DTOs.Midtrans;
+
 namespace Sindika.AspNet.app015.Application.DTOs.Blockchain.Donation
 {
     public class BlockchainDonationResponse
@@ -19,6 +21,7 @@ namespace Sindika.AspNet.app015.Application.DTOs.Blockchain.Donation
         public bool Success { get; set; }
         public string Message { get; set; } = string.Empty;
         public BlockchainDonationDTO? Data { get; set; }
+        public PaymentResponseDTO? Payment { get; set; }
     }
 
     public class BlockchainTotalDonationResponse

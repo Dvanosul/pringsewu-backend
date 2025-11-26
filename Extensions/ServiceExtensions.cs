@@ -54,6 +54,7 @@ namespace Sindika.AspNet.app015.Extensions
             services.AddScoped<IBlockchainEventService, BlockchainEventService>();
             services.AddScoped<IBlockchainWithdrawalService, BlockchainWithdrawalService>();
             services.AddScoped<IBlockchainGalleryService, BlockchainGalleryService>();
+            services.AddScoped<IPendingDonationService, PendingDonationService>();
             services.AddScoped<IMidtransService, MidtransService>();
 
             return services;
