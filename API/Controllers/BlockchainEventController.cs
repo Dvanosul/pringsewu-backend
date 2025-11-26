@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Sindika.AspNet.app015.API.Models.Blockchain;
 using Sindika.AspNet.app015.Application.Interfaces.Services.Blockchain;
+using Sindika.AspNet.app015.Common.Helpers;
 using Sindika.AspNet.Response;
 using Sindika.AspNet.Request;
 using Sindika.AspNet.Authentication.Attributes;
@@ -28,7 +29,7 @@ namespace Sindika.AspNet.app015.API.Controllers
             
             if (!response.Success)
             {
-                return BadRequest(ResponseHelper.Success<object>(null, response.Message));
+                return BadRequest(ApiResponseHelper.Error(response.Message ?? "Failed to create event"));
             }
 
             return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
@@ -42,7 +43,7 @@ namespace Sindika.AspNet.app015.API.Controllers
             
             if (!response.Success)
             {
-                return NotFound(ResponseHelper.Success<object>(null, response.Message));
+                return NotFound(ApiResponseHelper.Error(response.Message ?? "Event not found", "ERR-BLOCKCHAIN-NOTFOUND"));
             }
 
             return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
@@ -56,7 +57,7 @@ namespace Sindika.AspNet.app015.API.Controllers
             
             if (!response.Success)
             {
-                return BadRequest(ResponseHelper.Success<object>(null, response.Message));
+                return BadRequest(ApiResponseHelper.Error(response.Message ?? "Failed to fetch events"));
             }
 
             return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
@@ -70,7 +71,7 @@ namespace Sindika.AspNet.app015.API.Controllers
             
             if (!response.Success)
             {
-                return BadRequest(ResponseHelper.Success<object>(null, response.Message));
+                return BadRequest(ApiResponseHelper.Error(response.Message ?? "Failed to fetch event summary"));
             }
 
             return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
@@ -84,7 +85,7 @@ namespace Sindika.AspNet.app015.API.Controllers
             
             if (!response.Success)
             {
-                return BadRequest(ResponseHelper.Success<object>(null, response.Message));
+                return BadRequest(ApiResponseHelper.Error(response.Message ?? "Failed to fetch events by organizer"));
             }
 
             return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
@@ -98,7 +99,7 @@ namespace Sindika.AspNet.app015.API.Controllers
             
             if (!response.Success)
             {
-                return BadRequest(ResponseHelper.Success<object>(null, response.Message));
+                return BadRequest(ApiResponseHelper.Error(response.Message ?? "Failed to fetch event totals by organizer"));
             }
 
             return Ok(ResponseHelper.Success<object>(response.Data, response.Message));

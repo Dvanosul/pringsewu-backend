@@ -14,6 +14,7 @@ using Sindika.AspNet.Connection.Redis;
 using Sindika.AspNet.Enrichment;
 using Sindika.AspNet.Enrichment.Configuration;
 using Sindika.AspNet.Enrichment.Enrichment.Middleware;
+using Sindika.AspNet.Midtrans.Extensions;
 using Sindika.AspNet.Storage.Extensions;
 using Sindika.AspNet.Storage.Interfaces;
 using Sindika.AspNet.Validation;
@@ -44,6 +45,11 @@ Configuration.AddEnvironmentVariables();
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add<ValidateModelStateFilter>();
+}).AddMidtrans();
+
+builder.Services.AddMidtrans(options =>
+{
+    builder.Configuration.GetSection("Midtrans").Bind(options);
 });
 
 // Keycloak
@@ -152,6 +158,9 @@ app.UseHttpsRedirection();
 // Authentication and Authorization
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Midtrans notifications middleware (webhook handling)
+app.UseMidtransNotifications();
 
 // Map Controllers and Enable CORS
 app.MapControllers();
