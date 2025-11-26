@@ -26,12 +26,6 @@ namespace Sindika.AspNet.app015.API.Controllers
         public async Task<IActionResult> CreateWithdrawal([FromBody] BaseRequest<CreateBlockchainWithdrawalRequest> request)
         {
             var response = await _blockchainWithdrawalService.CreateWithdrawalAsync(request.Data);
-            
-            if (!response.Success)
-            {
-                return BadRequest(ApiResponseHelper.Error(response.Message ?? "Failed to create withdrawal"));
-            }
-
             return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
         }
 
@@ -40,12 +34,6 @@ namespace Sindika.AspNet.app015.API.Controllers
         public async Task<IActionResult> GetWithdrawal(string id)
         {
             var response = await _blockchainWithdrawalService.GetWithdrawalAsync(id);
-            
-            if (!response.Success)
-            {
-                return NotFound(ApiResponseHelper.Error(response.Message ?? "Withdrawal not found", "ERR-BLOCKCHAIN-NOTFOUND"));
-            }
-
             return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
         }
 
@@ -54,12 +42,6 @@ namespace Sindika.AspNet.app015.API.Controllers
         public async Task<IActionResult> GetAllWithdrawals()
         {
             var response = await _blockchainWithdrawalService.GetAllWithdrawalsAsync();
-            
-            if (!response.Success)
-            {
-                return BadRequest(ApiResponseHelper.Error(response.Message ?? "Failed to fetch withdrawals"));
-            }
-
             return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
         }
 
@@ -68,12 +50,6 @@ namespace Sindika.AspNet.app015.API.Controllers
         public async Task<IActionResult> GetTotalWithdrawals()
         {
             var response = await _blockchainWithdrawalService.GetTotalWithdrawalsAsync();
-            
-            if (!response.Success)
-            {
-                return BadRequest(ApiResponseHelper.Error(response.Message ?? "Failed to fetch withdrawals by event"));
-            }
-
             return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
         }
 
@@ -82,12 +58,6 @@ namespace Sindika.AspNet.app015.API.Controllers
         public async Task<IActionResult> GetWithdrawalsByEventCode(string eventCode)
         {
             var response = await _blockchainWithdrawalService.GetWithdrawalsByEventCodeAsync(eventCode);
-            
-            if (!response.Success)
-            {
-                return BadRequest(ApiResponseHelper.Error(response.Message ?? "Failed to fetch withdrawal totals"));
-            }
-
             return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
         }
 
@@ -96,12 +66,6 @@ namespace Sindika.AspNet.app015.API.Controllers
         public async Task<IActionResult> GetTotalWithdrawalsByEventCode(string eventCode)
         {
             var response = await _blockchainWithdrawalService.GetTotalWithdrawalsByEventCodeAsync(eventCode);
-            
-            if (!response.Success)
-            {
-                return BadRequest(ApiResponseHelper.Error(response.Message ?? "Failed to fetch withdrawal totals by event"));
-            }
-
             return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
         }
     }

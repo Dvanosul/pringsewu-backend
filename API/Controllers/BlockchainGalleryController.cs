@@ -26,12 +26,6 @@ namespace Sindika.AspNet.app015.API.Controllers
         public async Task<IActionResult> CreateGallery([FromBody] BaseRequest<CreateBlockchainGalleryRequest> request)
         {
             var response = await _blockchainGalleryService.CreateGalleryAsync(request.Data);
-            
-            if (!response.Success)
-            {
-                return BadRequest(ApiResponseHelper.Error(response.Message ?? "Failed to create gallery"));
-            }
-
             return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
         }
 
@@ -40,12 +34,6 @@ namespace Sindika.AspNet.app015.API.Controllers
         public async Task<IActionResult> GetGallery(string id)
         {
             var response = await _blockchainGalleryService.GetGalleryAsync(id);
-            
-            if (!response.Success)
-            {
-                return NotFound(ApiResponseHelper.Error(response.Message ?? "Gallery not found", "ERR-BLOCKCHAIN-NOTFOUND"));
-            }
-
             return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
         }
 
@@ -54,12 +42,6 @@ namespace Sindika.AspNet.app015.API.Controllers
         public async Task<IActionResult> GetAllGalleries()
         {
             var response = await _blockchainGalleryService.GetAllGalleriesAsync();
-            
-            if (!response.Success)
-            {
-                return BadRequest(ApiResponseHelper.Error(response.Message ?? "Failed to fetch galleries"));
-            }
-
             return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
         }
 
@@ -68,12 +50,6 @@ namespace Sindika.AspNet.app015.API.Controllers
         public async Task<IActionResult> GetGalleriesByEventCode(string eventCode)
         {
             var response = await _blockchainGalleryService.GetGalleriesByEventCodeAsync(eventCode);
-            
-            if (!response.Success)
-            {
-                return BadRequest(ApiResponseHelper.Error(response.Message ?? "Failed to fetch galleries by event"));
-            }
-
             return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
         }
 
@@ -82,12 +58,6 @@ namespace Sindika.AspNet.app015.API.Controllers
         public async Task<IActionResult> UpdateGallery(string id, [FromBody] BaseRequest<UpdateBlockchainGalleryRequest> request)
         {
             var response = await _blockchainGalleryService.UpdateGalleryAsync(id, request.Data);
-            
-            if (!response.Success)
-            {
-                return BadRequest(ApiResponseHelper.Error(response.Message ?? "Failed to fetch gallery summary"));
-            }
-
             return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
         }
 
@@ -96,12 +66,6 @@ namespace Sindika.AspNet.app015.API.Controllers
         public async Task<IActionResult> DeleteGallery(string id)
         {
             var response = await _blockchainGalleryService.DeleteGalleryAsync(id);
-            
-            if (!response.Success)
-            {
-                return BadRequest(ApiResponseHelper.Error(response.Message ?? "Failed to fetch gallery totals"));
-            }
-
             return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
         }
     }

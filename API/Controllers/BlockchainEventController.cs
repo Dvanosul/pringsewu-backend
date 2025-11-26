@@ -26,12 +26,6 @@ namespace Sindika.AspNet.app015.API.Controllers
         public async Task<IActionResult> CreateEvent([FromBody] BaseRequest<CreateBlockchainEventRequest> request)
         {
             var response = await _blockchainEventService.CreateEventAsync(request.Data);
-            
-            if (!response.Success)
-            {
-                return BadRequest(ApiResponseHelper.Error(response.Message ?? "Failed to create event"));
-            }
-
             return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
         }
 
@@ -40,12 +34,6 @@ namespace Sindika.AspNet.app015.API.Controllers
         public async Task<IActionResult> GetEvent(string code)
         {
             var response = await _blockchainEventService.GetEventAsync(code);
-            
-            if (!response.Success)
-            {
-                return NotFound(ApiResponseHelper.Error(response.Message ?? "Event not found", "ERR-BLOCKCHAIN-NOTFOUND"));
-            }
-
             return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
         }
 
@@ -54,12 +42,6 @@ namespace Sindika.AspNet.app015.API.Controllers
         public async Task<IActionResult> GetAllEvents()
         {
             var response = await _blockchainEventService.GetAllEventsAsync();
-            
-            if (!response.Success)
-            {
-                return BadRequest(ApiResponseHelper.Error(response.Message ?? "Failed to fetch events"));
-            }
-
             return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
         }
 
@@ -68,12 +50,6 @@ namespace Sindika.AspNet.app015.API.Controllers
         public async Task<IActionResult> GetActiveEvents()
         {
             var response = await _blockchainEventService.GetActiveEventsAsync();
-            
-            if (!response.Success)
-            {
-                return BadRequest(ApiResponseHelper.Error(response.Message ?? "Failed to fetch event summary"));
-            }
-
             return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
         }
 
@@ -82,12 +58,6 @@ namespace Sindika.AspNet.app015.API.Controllers
         public async Task<IActionResult> UpdateEventStatus(string code, [FromBody] BaseRequest<UpdateBlockchainEventStatusRequest> request)
         {
             var response = await _blockchainEventService.UpdateEventStatusAsync(code, request.Data);
-            
-            if (!response.Success)
-            {
-                return BadRequest(ApiResponseHelper.Error(response.Message ?? "Failed to fetch events by organizer"));
-            }
-
             return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
         }
 
@@ -96,12 +66,6 @@ namespace Sindika.AspNet.app015.API.Controllers
         public async Task<IActionResult> UpdateEvent(string code, [FromBody] BaseRequest<UpdateBlockchainEventRequest> request)
         {
             var response = await _blockchainEventService.UpdateEventAsync(code, request.Data);
-            
-            if (!response.Success)
-            {
-                return BadRequest(ApiResponseHelper.Error(response.Message ?? "Failed to fetch event totals by organizer"));
-            }
-
             return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
         }
     }
