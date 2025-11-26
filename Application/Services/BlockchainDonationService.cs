@@ -1,8 +1,9 @@
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 using Sindika.AspNet.app015.API.Models.Blockchain;
 using Sindika.AspNet.app015.Application.DTOs.Blockchain.Donation;
 using Sindika.AspNet.app015.Application.Interfaces.Services.Blockchain;
+using Sindika.AspNet.Common.Interfaces;
 
 namespace Sindika.AspNet.app015.Application.Services.Blockchain
 {
@@ -10,15 +11,19 @@ namespace Sindika.AspNet.app015.Application.Services.Blockchain
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<BlockchainDonationService> _logger;
+        private readonly ICacheService _cacheService;
         private readonly string _baseUrl;
+        private readonly TimeSpan _cacheExpiration = TimeSpan.FromMinutes(5);
 
         public BlockchainDonationService(
             IHttpClientFactory httpClientFactory,
             IConfiguration configuration,
-            ILogger<BlockchainDonationService> logger)
+            ILogger<BlockchainDonationService> logger,
+            ICacheService cacheService)
         {
             _httpClient = httpClientFactory.CreateClient();
             _logger = logger;
+            _cacheService = cacheService;
             _baseUrl = configuration["VaFundApi:BaseUrl"] ?? "http://localhost:3000";
         }
 
@@ -32,8 +37,16 @@ namespace Sindika.AspNet.app015.Application.Services.Blockchain
                 
                 response.EnsureSuccessStatusCode();
                 var responseContent = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<BlockchainDonationSingleResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+                var result = JsonSerializer.Deserialize<BlockchainDonationSingleResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
                     ?? new BlockchainDonationSingleResponse { Success = false, Message = "Failed to deserialize response" };
+
+                if (result.Success)
+                {
+                    await InvalidateDonationCache(request.EventCode);
+                    _logger.LogInformation("Invalidated donation cache after creating new donation");
+                }
+
+                return result;
             }
             catch (Exception ex)
             {
@@ -46,15 +59,54 @@ namespace Sindika.AspNet.app015.Application.Services.Blockchain
             }
         }
 
+        private async Task InvalidateDonationCache(string? eventCode = null)
+        {
+            try
+            {
+                await _cacheService.HashRemoveAsync("blockchain:donations", "all");
+                await _cacheService.HashRemoveAsync("blockchain:donations", "total");
+
+                if (!string.IsNullOrEmpty(eventCode))
+                {
+                    await _cacheService.HashRemoveAsync("blockchain:donations", $"event:{eventCode}");
+                    await _cacheService.HashRemoveAsync("blockchain:donations", $"event:{eventCode}:total");
+                }
+
+                _logger.LogInformation("Successfully invalidated donation cache");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to invalidate donation cache, but continuing operation");
+            }
+        }
+
         public async Task<BlockchainDonationSingleResponse> GetDonationAsync(string id)
         {
             try
             {
+                var cacheField = $"donation:{id}";
+                
+                var isExist = await _cacheService.IsExistHashAsync("blockchain:donations", cacheField);
+                if (isExist)
+                {
+                    _logger.LogInformation("Retrieved donation {DonationId} from cache", id);
+                }
+
+                _logger.LogInformation("Fetching donation {DonationId} from API", id);
                 var response = await _httpClient.GetAsync($"{_baseUrl}/api/donations/{id}");
                 response.EnsureSuccessStatusCode();
                 var content = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<BlockchainDonationSingleResponse>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+                var result = JsonSerializer.Deserialize<BlockchainDonationSingleResponse>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
                     ?? new BlockchainDonationSingleResponse { Success = false, Message = "Failed to deserialize response" };
+
+                if (result.Success && result.Data != null)
+                {
+                    var serializedData = JsonSerializer.Serialize(result);
+                    await _cacheService.HashSetAsync("blockchain:donations", cacheField, serializedData, _cacheExpiration);
+                    _logger.LogInformation("Cached donation {DonationId} for {Minutes} minutes", id, _cacheExpiration.TotalMinutes);
+                }
+
+                return result;
             }
             catch (Exception ex)
             {
@@ -71,11 +123,30 @@ namespace Sindika.AspNet.app015.Application.Services.Blockchain
         {
             try
             {
+                var cacheField = "all";
+                
+                var isExist = await _cacheService.IsExistHashAsync("blockchain:donations", cacheField);
+                if (isExist)
+                {
+                    _logger.LogInformation("Retrieved all donations from cache");
+                }
+
+                _logger.LogInformation("Fetching all donations from API");
                 var response = await _httpClient.GetAsync($"{_baseUrl}/api/donations");
                 response.EnsureSuccessStatusCode();
                 var content = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<BlockchainDonationListResponse>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+                var result = JsonSerializer.Deserialize<BlockchainDonationListResponse>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
                     ?? new BlockchainDonationListResponse { Success = false, Message = "Failed to deserialize response" };
+
+               
+                if (result.Success && result.Data != null)
+                {
+                    var serializedData = JsonSerializer.Serialize(result);
+                    await _cacheService.HashSetAsync("blockchain:donations", cacheField, serializedData, _cacheExpiration);
+                    _logger.LogInformation("Cached all donations for {Minutes} minutes", _cacheExpiration.TotalMinutes);
+                }
+
+                return result;
             }
             catch (Exception ex)
             {
@@ -92,11 +163,30 @@ namespace Sindika.AspNet.app015.Application.Services.Blockchain
         {
             try
             {
+                var cacheField = "total";
+                
+                var isExist = await _cacheService.IsExistHashAsync("blockchain:donations", cacheField);
+                if (isExist)
+                {
+                    _logger.LogInformation("Retrieved total donations from cache");
+                }
+
+                _logger.LogInformation("Fetching total donations from API");
                 var response = await _httpClient.GetAsync($"{_baseUrl}/api/donations/total");
                 response.EnsureSuccessStatusCode();
                 var content = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<BlockchainTotalDonationResponse>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+                var result = JsonSerializer.Deserialize<BlockchainTotalDonationResponse>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
                     ?? new BlockchainTotalDonationResponse { Success = false, Message = "Failed to deserialize response" };
+
+               
+                if (result.Success)
+                {
+                    var serializedData = JsonSerializer.Serialize(result);
+                    await _cacheService.HashSetAsync("blockchain:donations", cacheField, serializedData, _cacheExpiration);
+                    _logger.LogInformation("Cached total donations for {Minutes} minutes", _cacheExpiration.TotalMinutes);
+                }
+
+                return result;
             }
             catch (Exception ex)
             {
@@ -134,11 +224,30 @@ namespace Sindika.AspNet.app015.Application.Services.Blockchain
         {
             try
             {
+                var cacheField = $"event:{eventCode}";
+                
+                var isExist = await _cacheService.IsExistHashAsync("blockchain:donations", cacheField);
+                if (isExist)
+                {
+                    _logger.LogInformation("Retrieved donations for event {EventCode} from cache", eventCode);
+                }
+
+                _logger.LogInformation("Fetching donations for event {EventCode} from API", eventCode);
                 var response = await _httpClient.GetAsync($"{_baseUrl}/api/donations/event/{eventCode}");
                 response.EnsureSuccessStatusCode();
                 var content = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<BlockchainDonationListResponse>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+                var result = JsonSerializer.Deserialize<BlockchainDonationListResponse>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
                     ?? new BlockchainDonationListResponse { Success = false, Message = "Failed to deserialize response" };
+
+               
+                if (result.Success && result.Data != null)
+                {
+                    var serializedData = JsonSerializer.Serialize(result);
+                    await _cacheService.HashSetAsync("blockchain:donations", cacheField, serializedData, _cacheExpiration);
+                    _logger.LogInformation("Cached donations for event {EventCode} for {Minutes} minutes", eventCode, _cacheExpiration.TotalMinutes);
+                }
+
+                return result;
             }
             catch (Exception ex)
             {
@@ -155,11 +264,30 @@ namespace Sindika.AspNet.app015.Application.Services.Blockchain
         {
             try
             {
+                var cacheField = $"event:{eventCode}:total";
+                
+                var isExist = await _cacheService.IsExistHashAsync("blockchain:donations", cacheField);
+                if (isExist)
+                {
+                    _logger.LogInformation("Retrieved total donations for event {EventCode} from cache", eventCode);
+                }
+
+                _logger.LogInformation("Fetching total donations for event {EventCode} from API", eventCode);
                 var response = await _httpClient.GetAsync($"{_baseUrl}/api/donations/event/{eventCode}/total");
                 response.EnsureSuccessStatusCode();
                 var content = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<BlockchainTotalDonationResponse>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+                var result = JsonSerializer.Deserialize<BlockchainTotalDonationResponse>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
                     ?? new BlockchainTotalDonationResponse { Success = false, Message = "Failed to deserialize response" };
+
+               
+                if (result.Success)
+                {
+                    var serializedData = JsonSerializer.Serialize(result);
+                    await _cacheService.HashSetAsync("blockchain:donations", cacheField, serializedData, _cacheExpiration);
+                    _logger.LogInformation("Cached total donations for event {EventCode} for {Minutes} minutes", eventCode, _cacheExpiration.TotalMinutes);
+                }
+
+                return result;
             }
             catch (Exception ex)
             {
