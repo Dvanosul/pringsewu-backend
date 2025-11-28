@@ -104,11 +104,23 @@ namespace Sindika.AspNet.app015.Application.Services
             }
         }
 
-        public async Task HashRemoveAsync(string key, string field)
+        public async Task HashRemoveAsync(string key, string field = "*")
         {
             try
             {
                 var db = _redis.GetDatabase();
+                if (field == "*")
+                {
+                    var fields = await db.HashKeysAsync(key);
+                    if (fields.Length == 0)
+                    {
+                        return;
+                    }
+
+                    await db.HashDeleteAsync(key, fields);
+                    return;
+                }
+
                 await db.HashDeleteAsync(key, field);
             }
             catch (Exception ex)
@@ -154,11 +166,23 @@ namespace Sindika.AspNet.app015.Application.Services
             try
             {
                 var db = _redis.GetDatabase();
+                var batch = db.CreateBatch();
                 var hashEntries = entries.Select(e => new HashEntry(e.Key, e.Value)).ToArray();
-                await db.HashSetAsync(key, hashEntries);
+                var setTask = batch.HashSetAsync(key, hashEntries);
+                Task<bool>? expireTask = null;
                 if (expiration.HasValue)
                 {
-                    await db.KeyExpireAsync(key, expiration);
+                    expireTask = batch.KeyExpireAsync(key, expiration);
+                }
+
+                batch.Execute();
+                if (expireTask is null)
+                {
+                    await setTask;
+                }
+                else
+                {
+                    await Task.WhenAll(setTask, expireTask);
                 }
             }
             catch (Exception ex)
