@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Http;
 using Sindika.AspNet.Validation.Attributes.General;
 
 namespace Sindika.AspNet.app015.API.Models.Blockchain
@@ -10,9 +11,8 @@ namespace Sindika.AspNet.app015.API.Models.Blockchain
         public string EventCode { get; set; } = string.Empty;
 
         [Mandatory]
-        [MaxLength(500)]
-        [JsonPropertyName("imageURL")]
-        public string ImageURL { get; set; } = string.Empty;
+        [JsonPropertyName("image")]
+        public required IFormFile Image { get; set; }
 
         [MaxLength(1000)]
         [JsonPropertyName("description")]
@@ -25,10 +25,8 @@ namespace Sindika.AspNet.app015.API.Models.Blockchain
         [JsonPropertyName("eventCode")]
         public string EventCode { get; set; } = string.Empty;
 
-        [Mandatory]
-        [MaxLength(500)]
-        [JsonPropertyName("imageURL")]
-        public string ImageURL { get; set; } = string.Empty;
+        [JsonPropertyName("image")]
+        public IFormFile? Image { get; set; }
 
         [MaxLength(1000)]
         [JsonPropertyName("description")]

@@ -20,4 +20,12 @@ namespace Sindika.AspNet.app015.Application.DTOs.Blockchain.Gallery
         public string Message { get; set; } = string.Empty;
         public BlockchainGalleryDTO? Data { get; set; }
     }
+
+    public class BlockchainGalleryImageResponse
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public byte[]? ImageData { get; set; }
+        public string? ContentType { get; set; }
+    }
 }

@@ -9,6 +9,7 @@ namespace Sindika.AspNet.app015.Application.Interfaces.Services.Blockchain
         Task<BlockchainGallerySingleResponse> GetGalleryAsync(string id);
         Task<BlockchainGalleryListResponse> GetAllGalleriesAsync();
         Task<BlockchainGalleryListResponse> GetGalleriesByEventCodeAsync(string eventCode);
+        Task<BlockchainGalleryImageResponse> GetGalleryImageAsync(string id);
         Task<BlockchainGallerySingleResponse> UpdateGalleryAsync(string id, UpdateBlockchainGalleryRequest request);
         Task<BlockchainGalleryResponse> DeleteGalleryAsync(string id);
     }

@@ -23,9 +23,9 @@ namespace Sindika.AspNet.app015.API.Controllers
 
         [Event("insert")]
         [HttpPost("create")]
-        public async Task<IActionResult> CreateGallery([FromBody] BaseRequest<CreateBlockchainGalleryRequest> request)
+        public async Task<IActionResult> CreateGallery([FromForm] CreateBlockchainGalleryRequest request)
         {
-            var response = await _blockchainGalleryService.CreateGalleryAsync(request.Data);
+            var response = await _blockchainGalleryService.CreateGalleryAsync(request);
             return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
         }
 
@@ -53,11 +53,23 @@ namespace Sindika.AspNet.app015.API.Controllers
             return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
         }
 
+        [Event("view")]
+        [HttpGet("{id}/image")]
+        public async Task<IActionResult> GetGalleryImage(string id)
+        {
+            var response = await _blockchainGalleryService.GetGalleryImageAsync(id);
+            if (!response.Success || response.ImageData == null)
+            {
+                return NotFound(ResponseHelper.Error<object, object>(null, "ERR-404", response.Message));
+            }
+            return File(response.ImageData, response.ContentType ?? "image/jpeg");
+        }
+
         [Event("update")]
         [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateGallery(string id, [FromBody] BaseRequest<UpdateBlockchainGalleryRequest> request)
+        public async Task<IActionResult> UpdateGallery(string id, [FromForm] UpdateBlockchainGalleryRequest request)
         {
-            var response = await _blockchainGalleryService.UpdateGalleryAsync(id, request.Data);
+            var response = await _blockchainGalleryService.UpdateGalleryAsync(id, request);
             return Ok(ResponseHelper.Success<object>(response.Data, response.Message));
         }
 

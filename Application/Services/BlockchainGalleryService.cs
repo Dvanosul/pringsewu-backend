@@ -1,5 +1,6 @@
-﻿using System.Text;
+﻿using System.Net.Http.Headers;
 using System.Text.Json;
+using Microsoft.AspNetCore.Http;
 using Sindika.AspNet.app015.API.Models.Blockchain;
 using Sindika.AspNet.app015.Application.DTOs.Blockchain.Gallery;
 using Sindika.AspNet.app015.Application.Interfaces.Services.Blockchain;
@@ -14,6 +15,8 @@ namespace Sindika.AspNet.app015.Application.Services.Blockchain
         private readonly ICacheService _cacheService;
         private readonly string _baseUrl;
         private readonly TimeSpan _cacheExpiration = TimeSpan.FromMinutes(5);
+        private readonly string[] _allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
+        private const long MaxFileSize = 5 * 1024 * 1024; 
 
         public BlockchainGalleryService(
             IHttpClientFactory httpClientFactory,
@@ -31,16 +34,28 @@ namespace Sindika.AspNet.app015.Application.Services.Blockchain
         {
             try
             {
-                var galleryId = Guid.NewGuid().ToString();
-                var requestWithId = new
+                var validationResult = ValidateImageFile(request.Image);
+                if (!validationResult.IsValid)
                 {
-                    id = galleryId,
-                    eventCode = request.EventCode,
-                    imageURL = request.ImageURL,
-                    description = request.Description
-                };
-                var json = JsonSerializer.Serialize(requestWithId);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                    return new BlockchainGallerySingleResponse
+                    {
+                        Success = false,
+                        Message = validationResult.ErrorMessage
+                    };
+                }
+
+                var galleryId = Guid.NewGuid().ToString();
+
+                using var content = new MultipartFormDataContent();
+                content.Add(new StringContent(galleryId), "id");
+                content.Add(new StringContent(request.EventCode), "eventCode");
+                content.Add(new StringContent(request.Description ?? string.Empty), "description");
+
+                using var stream = request.Image.OpenReadStream();
+                var fileContent = new StreamContent(stream);
+                fileContent.Headers.ContentType = new MediaTypeHeaderValue(request.Image.ContentType);
+                content.Add(fileContent, "image", request.Image.FileName);
+
                 var response = await _httpClient.PostAsync($"{_baseUrl}/api/gallery", content);
                 
                 response.EnsureSuccessStatusCode();
@@ -51,7 +66,7 @@ namespace Sindika.AspNet.app015.Application.Services.Blockchain
                 if (result.Success)
                 {
                     await InvalidateGalleryCache(request.EventCode);
-                    _logger.LogInformation("Invalidated gallery cache after creating new gallery");
+                    _logger.LogInformation("Created gallery {GalleryId} with image upload", galleryId);
                 }
 
                 return result;
@@ -65,6 +80,27 @@ namespace Sindika.AspNet.app015.Application.Services.Blockchain
                     Message = $"Error: {ex.Message}"
                 };
             }
+        }
+
+        private (bool IsValid, string ErrorMessage) ValidateImageFile(IFormFile? file, bool isRequired = true)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return isRequired ? (false, "Image file is required") : (true, string.Empty);
+            }
+
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (!_allowedExtensions.Contains(extension))
+            {
+                return (false, $"Invalid file type. Allowed: {string.Join(", ", _allowedExtensions)}");
+            }
+
+            if (file.Length > MaxFileSize)
+            {
+                return (false, "File size exceeds 5MB limit");
+            }
+
+            return (true, string.Empty);
         }
 
 
@@ -203,12 +239,77 @@ namespace Sindika.AspNet.app015.Application.Services.Blockchain
             }
         }
 
+        public async Task<BlockchainGalleryImageResponse> GetGalleryImageAsync(string id)
+        {
+            try
+            {
+                _logger.LogInformation("Fetching gallery image {GalleryId} from API", id);
+                var response = await _httpClient.GetAsync($"{_baseUrl}/api/gallery/{id}/image");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return new BlockchainGalleryImageResponse
+                    {
+                        Success = false,
+                        Message = "Image not found"
+                    };
+                }
+
+                var imageData = await response.Content.ReadAsByteArrayAsync();
+                var contentType = response.Content.Headers.ContentType?.MediaType ?? "image/jpeg";
+
+                return new BlockchainGalleryImageResponse
+                {
+                    Success = true,
+                    Message = "Image retrieved successfully",
+                    ImageData = imageData,
+                    ContentType = contentType
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting gallery image {GalleryId} from blockchain", id);
+                return new BlockchainGalleryImageResponse
+                {
+                    Success = false,
+                    Message = $"Error: {ex.Message}"
+                };
+            }
+        }
+
         public async Task<BlockchainGallerySingleResponse> UpdateGalleryAsync(string id, UpdateBlockchainGalleryRequest request)
         {
             try
             {
-                var json = JsonSerializer.Serialize(request);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                if (request.Image != null)
+                {
+                    var validationResult = ValidateImageFile(request.Image, isRequired: false);
+                    if (!validationResult.IsValid)
+                    {
+                        return new BlockchainGallerySingleResponse
+                        {
+                            Success = false,
+                            Message = validationResult.ErrorMessage
+                        };
+                    }
+                }
+
+                using var content = new MultipartFormDataContent();
+                content.Add(new StringContent(request.EventCode), "eventCode");
+                content.Add(new StringContent(request.Description ?? string.Empty), "description");
+
+                if (request.Image != null)
+                {
+                    using var stream = request.Image.OpenReadStream();
+                    var memoryStream = new MemoryStream();
+                    await stream.CopyToAsync(memoryStream);
+                    memoryStream.Position = 0;
+
+                    var fileContent = new StreamContent(memoryStream);
+                    fileContent.Headers.ContentType = new MediaTypeHeaderValue(request.Image.ContentType);
+                    content.Add(fileContent, "image", request.Image.FileName);
+                }
+
                 var response = await _httpClient.PutAsync($"{_baseUrl}/api/gallery/{id}", content);
                 
                 response.EnsureSuccessStatusCode();
@@ -220,7 +321,7 @@ namespace Sindika.AspNet.app015.Application.Services.Blockchain
                 {
                     await InvalidateGalleryCache(request.EventCode);
                     await _cacheService.HashRemoveAsync("blockchain:galleries", $"gallery:{id}");
-                    _logger.LogInformation("Invalidated gallery cache after updating");
+                    _logger.LogInformation("Updated gallery {GalleryId}", id);
                 }
 
                 return result;
