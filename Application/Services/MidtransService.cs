@@ -1,3 +1,4 @@
+using Sindika.AspNet.app015.API.Models.Midtrans;
 using Sindika.AspNet.app015.Application.DTOs.Midtrans;
 using Sindika.AspNet.app015.Application.DTOs.Blockchain.Donation;
 using Sindika.AspNet.app015.Application.Interfaces.Services;
@@ -30,30 +31,26 @@ namespace Sindika.AspNet.app015.Application.Services
             _logger = logger;
         }
 
-        public async Task<PaymentResponseDTO> CreatePaymentAsync(PaymentParam param)
+        public async Task<PaymentResponseDTO> CreatePaymentAsync(CreatePaymentRequest request)
         {
-            var orderId = string.IsNullOrEmpty(param.OrderId) ? $"ORDER-{Guid.NewGuid():N}" : param.OrderId;
+            var orderId = string.IsNullOrEmpty(request.OrderId) ? $"ORDER-{Guid.NewGuid():N}" : request.OrderId;
             
             var snapRequest = new SnapTransactionRequest
             {
                 TransactionDetails = new TransactionDetails
                 {
                     OrderId = orderId,
-                    GrossAmount = param.Amount
+                    GrossAmount = request.Amount
                 },
                 CustomerDetails = new CustomerDetails
                 {
-                    FirstName = param.Name
+                    FirstName = request.Name
                 }
             };
 
             var response = await _midtransClient.Snap.CreateTransactionAsync(snapRequest);
 
-            if (param.PendingDonation is not null)
-            {
-                await _pendingDonationService.StorePendingDonationAsync(orderId, param.PendingDonation);
-                _logger.LogInformation("Stored pending donation for order {OrderId}, waiting for payment confirmation", orderId);
-            }
+            _logger.LogInformation("Created payment token for order {OrderId}", orderId);
 
             return new PaymentResponseDTO
             {
@@ -62,7 +59,7 @@ namespace Sindika.AspNet.app015.Application.Services
             };
         }
 
-        public async Task<BlockchainDonationSingleResponse?> HandleWebhookAsync(MidtransNotification notification)
+        public async Task<MidtransWebhookResponse> HandleWebhookAsync(MidtransNotification notification)
         {
             _logger.LogInformation("Handling Midtrans webhook for order {OrderId} status {Status}", 
                 notification.OrderId, notification.TransactionStatus);
@@ -90,11 +87,22 @@ namespace Sindika.AspNet.app015.Application.Services
                             pendingDonation.DonationId, result.Message);
                     }
                     
-                    return result;
+                    return new MidtransWebhookResponse
+                    {
+                        Success = result.Success,
+                        Message = result.Success ? "Payment confirmed, donation created successfully" : result.Message,
+                        Data = result.Data
+                    };
                 }
                 else
                 {
                     _logger.LogWarning("No pending donation found for order {OrderId}", notification.OrderId);
+                    return new MidtransWebhookResponse
+                    {
+                        Success = true,
+                        Message = "Webhook processed, no pending donation found",
+                        Data = null
+                    };
                 }
             }
             else if (notification.TransactionStatus == TransactionStatus.Deny ||
@@ -106,7 +114,12 @@ namespace Sindika.AspNet.app015.Application.Services
                     notification.OrderId, notification.TransactionStatus);
             }
 
-            return null;
+            return new MidtransWebhookResponse
+            {
+                Success = true,
+                Message = "Webhook processed",
+                Data = null
+            };
         }
     }
 }
