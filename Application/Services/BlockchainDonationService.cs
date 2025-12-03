@@ -22,6 +22,7 @@ namespace Sindika.AspNet.app015.Application.Services.Blockchain
         private readonly IPendingDonationService _pendingDonationService;
         private readonly IMidtransClient _midtransClient;
         private readonly string _baseUrl;
+        private readonly string _frontendUrl;
         private readonly TimeSpan _cacheExpiration = TimeSpan.FromMinutes(5);
 
         public BlockchainDonationService(
@@ -38,6 +39,7 @@ namespace Sindika.AspNet.app015.Application.Services.Blockchain
             _pendingDonationService = pendingDonationService;
             _midtransClient = midtransClient;
             _baseUrl = configuration["VaFundApi:BaseUrl"] ?? "http://localhost:3000";
+            _frontendUrl = configuration["FrontendUrl"] ?? "http://localhost:5173";
         }
 
         public async Task<PaymentResponseDTO> CreateDonationPaymentAsync(CreateBlockchainDonationRequest request)
@@ -54,6 +56,12 @@ namespace Sindika.AspNet.app015.Application.Services.Blockchain
                 CustomerDetails = new CustomerDetails
                 {
                     FirstName = request.SenderName
+                },
+                Callbacks = new CallbackSettings
+                {
+                    Finish = $"{_frontendUrl}",
+                    Pending = $"{_frontendUrl}",
+                    Error = $"{_frontendUrl}"
                 }
             };
 
