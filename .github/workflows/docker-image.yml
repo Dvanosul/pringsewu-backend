@@ -56,4 +56,5 @@ jobs:
             export MIDTRANS_CLIENT_KEY='${{ secrets.MIDTRANS_CLIENT_KEY }}'
             export VAFUND_BASE_URL='${{ secrets.VAFUND_BASE_URL }}'
             export REDIS_PASSWORD='${{ secrets.REDIS_PASSWORD }}'
+            export FRONTEND_URL='${{ secrets.FRONTEND_URL }}'
             bash /usr/local/bin/deploy-pringsewu.sh
