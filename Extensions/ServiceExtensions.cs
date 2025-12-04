@@ -18,60 +18,60 @@ namespace Sindika.AspNet.app015.Extensions
         {
             services.AddScoped<ICacheService, RedisCacheService>();
 
-            // Blockchain Services - communicate with VaFund API
+            services.AddScoped(typeof(IUnitOfWork<>), typeof(UnitOfWork<>));
+            services.AddScoped<TransactionOption>();
+            services.AddScoped(typeof(ICacheService), typeof(CacheService<Context>));
+            services.AddScoped<ISynchronizeCache, SynchronizeCache<Context>>();
+
+            services.AddScoped<IRoleService, RoleService>();
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IProfileService, ProfileService>();
+            services.AddScoped<IRoleProfileService, RoleProfileService>();
+            services.AddScoped<IPageService, PageService>();
+            services.AddScoped<IEventService, EventService>();
+            services.AddScoped<ICustomEventService, CustomEventService>();
+            services.AddScoped<IFileService, FileService>();
+            services.AddScoped<IDeveloperService, DeveloperService>();
+            services.AddScoped<ILanguageService, LanguageService>();
+            services.AddScoped<IZoneService, ZoneService>();
+            services.AddScoped<IEmployeeService, EmployeeService>();
+            services.AddScoped<IUserTypeService, UserTypeService>();
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IDeveloperRoleService, DeveloperRoleService>();
+            services.AddScoped<IEmployeeRoleService, EmployeeRoleService>();
+            services.AddScoped<IMenuService, MenuService>();
+            services.AddScoped<IUserInfoService, UserInfoService>();
+
+            services.AddScoped<IGenderService, GenderService>();
+
+            services.AddScoped<ICountryService, CountryService>();
+            services.AddScoped<IProvinceService, ProvinceService>();
+            services.AddScoped<ICityService, CityService>();
+            services.AddScoped<IDistrictService, DistrictService>();
+            services.AddScoped<ISubDistrictService, SubDistrictService>();
+
+            services.AddScoped<ILocationService, LocationService>();
+
             services.AddScoped<IBlockchainDonationService, BlockchainDonationService>();
             services.AddScoped<IBlockchainEventService, BlockchainEventService>();
             services.AddScoped<IBlockchainWithdrawalService, BlockchainWithdrawalService>();
             services.AddScoped<IBlockchainGalleryService, BlockchainGalleryService>();
-
-            // Pending Donation Service - uses Redis
             services.AddScoped<IPendingDonationService, PendingDonationService>();
-
-            // Midtrans Payment Service
             services.AddScoped<IMidtransService, MidtransService>();
 
             return services;
         }
     }
 }
-            // services.AddScoped(typeof(IUnitOfWork<>), typeof(UnitOfWork<>));
-            // services.AddScoped<TransactionOption>();
-            // services.AddScoped(typeof(ICacheService), typeof(CacheService<Context>));
-            // services.AddScoped<ISynchronizeCache, SynchronizeCache<Context>>();
 
-            // services.AddScoped<IRoleService, RoleService>();
-            // services.AddScoped<IAuthService, AuthService>();
-            // services.AddScoped<IProfileService, ProfileService>();
-            // services.AddScoped<IRoleProfileService, RoleProfileService>();
-            // services.AddScoped<IPageService, PageService>();
-            // services.AddScoped<IEventService, EventService>();
-            // services.AddScoped<ICustomEventService, CustomEventService>();
-            // services.AddScoped<IFileService, FileService>();
-            // services.AddScoped<IDeveloperService, DeveloperService>();
-            // services.AddScoped<ILanguageService, LanguageService>();
-            // services.AddScoped<IZoneService, ZoneService>();
-            // services.AddScoped<IEmployeeService, EmployeeService>();
-            // services.AddScoped<IUserTypeService, UserTypeService>();
-            // services.AddScoped<IUserService, UserService>();
-            // services.AddScoped<IDeveloperRoleService, DeveloperRoleService>();
-            // services.AddScoped<IEmployeeRoleService, EmployeeRoleService>();
-            // services.AddScoped<IMenuService, MenuService>();
-            // services.AddScoped<IUserInfoService, UserInfoService>();
-
-            // services.AddScoped<IGenderService, GenderService>();
-
-            // services.AddScoped<ICountryService, CountryService>();
-            // services.AddScoped<IProvinceService, ProvinceService>();
-            // services.AddScoped<ICityService, CityService>();
-            // services.AddScoped<IDistrictService, DistrictService>();
-            // services.AddScoped<ISubDistrictService, SubDistrictService>();
-
-            // services.AddScoped<ILocationService, LocationService>();
-
+            // Blockchain Services - communicate with VaFund API
             // services.AddScoped<IBlockchainDonationService, BlockchainDonationService>();
             // services.AddScoped<IBlockchainEventService, BlockchainEventService>();
             // services.AddScoped<IBlockchainWithdrawalService, BlockchainWithdrawalService>();
             // services.AddScoped<IBlockchainGalleryService, BlockchainGalleryService>();
-            // services.AddScoped<IPendingDonationService, PendingDonationService>();
-            // services.AddScoped<IMidtransService, MidtransService>();
 
+            // Pending Donation Service - uses Redis
+            // services.AddScoped<IPendingDonationService, PendingDonationService>();
+
+            // Midtrans Payment Service
+            // services.AddScoped<IMidtransService, MidtransService>();
