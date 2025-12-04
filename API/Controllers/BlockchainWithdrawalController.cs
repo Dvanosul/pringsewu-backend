@@ -9,7 +9,7 @@ using Sindika.AspNet.Authentication.Attributes;
 namespace Sindika.AspNet.app015.API.Controllers
 {
     [Page("blockchain-withdrawal", "Blockchain withdrawal data from VaFund API")]
-    [PublicScope]
+    [PrivateScope]
     [ApiController]
     [Route("api/v1/blockchain/withdrawals")]
     public class BlockchainWithdrawalController : ControllerBase
