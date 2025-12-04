@@ -53,9 +53,9 @@ jobs:
             MIDTRANS_SERVER_KEY,
             MIDTRANS_CLIENT_KEY,
             VAFUND_BASE_URL,
-            POSTGERS_WG_USERNAME,
-            POSTGERS_WG_PASSWORD,
-            POSTGERS_WG_DATABASE,
+            POSTGRES_WG_USERNAME,
+            POSTGRES_WG_PASSWORD,
+            POSTGRES_WG_DATABASE,
             REDIS_WG_PASSWORD,
           command_timeout: 30m
           script: |
@@ -63,9 +63,9 @@ jobs:
             export MIDTRANS_SERVER_KEY='${{ secrets.MIDTRANS_SERVER_KEY }}'
             export MIDTRANS_CLIENT_KEY='${{ secrets.MIDTRANS_CLIENT_KEY }}'
             export VAFUND_BASE_URL='${{ secrets.VAFUND_BASE_URL }}'
-            export POSTGERS_WG_USERNAME='${{ secrets.POSTGERS_WG_USERNAME }}'
-            export POSTGERS_WG_PASSWORD='${{ secrets.POSTGERS_WG_PASSWORD }}'
-            export POSTGERS_WG_DATABASE='${{ secrets.POSTGERS_WG_DATABASE }}'
+            export POSTGRES_WG_USERNAME='${{ secrets.POSTGRES_WG_USERNAME }}'
+            export POSTGRES_WG_PASSWORD='${{ secrets.POSTGRES_WG_PASSWORD }}'
+            export POSTGRES_WG_DATABASE='${{ secrets.POSTGRES_WG_DATABASE }}'
             export REDIS_WG_PASSWORD='${{ secrets.REDIS_WG_PASSWORD }}'
             export FRONTEND_URL='${{ secrets.FRONTEND_URL }}'
             bash /usr/local/bin/deploy-pringsewu.sh
