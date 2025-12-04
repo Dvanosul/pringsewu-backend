@@ -5,6 +5,7 @@ using Sindika.AspNet.app015.Infrastructure.Repositories;
 
 namespace Sindika.AspNet.app015.Extensions
 {
+    // Extension method to add repositories to the service collection
     public static class ServiceExteRepositoryExtensionsnsions
     {
         public static IServiceCollection AddRepositories(this IServiceCollection services)
