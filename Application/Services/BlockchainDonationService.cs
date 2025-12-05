@@ -39,7 +39,7 @@ namespace Sindika.AspNet.app015.Application.Services.Blockchain
             _pendingDonationService = pendingDonationService;
             _midtransClient = midtransClient;
             _baseUrl = configuration["VaFundApi:BaseUrl"] ?? "http://localhost:3000";
-            _frontendUrl = configuration["FrontendUrl"] ?? "http://localhost:5173";
+            _frontendUrl = configuration["FrontendUrl"] ?? "";
         }
 
         public async Task<PaymentResponseDTO> CreateDonationPaymentAsync(CreateBlockchainDonationRequest request)
@@ -56,14 +56,18 @@ namespace Sindika.AspNet.app015.Application.Services.Blockchain
                 CustomerDetails = new CustomerDetails
                 {
                     FirstName = request.SenderName
-                },
-                Callbacks = new CallbackSettings
-                {
-                    Finish = $"{_frontendUrl}",
-                    Pending = $"{_frontendUrl}",
-                    Error = $"{_frontendUrl}"
                 }
             };
+
+            if (!string.IsNullOrEmpty(_frontendUrl))
+            {
+                snapRequest.Callbacks = new CallbackSettings
+                {
+                    Finish = _frontendUrl,
+                    Pending = _frontendUrl,
+                    Error = _frontendUrl
+                };
+            }
 
             var response = await _midtransClient.Snap.CreateTransactionAsync(snapRequest);
 
