@@ -61,11 +61,12 @@ namespace Sindika.AspNet.app015.Application.Services.Blockchain
 
             if (!string.IsNullOrEmpty(_frontendUrl))
             {
+                var callbackUrl = $"{_frontendUrl}/donation?payment=completed&orderId={orderId}";
                 snapRequest.Callbacks = new CallbackSettings
                 {
-                    Finish = _frontendUrl,
-                    Pending = _frontendUrl,
-                    Error = _frontendUrl
+                    Finish = callbackUrl,
+                    Pending = $"{_frontendUrl}/donation?payment=pending&orderId={orderId}",
+                    Error = $"{_frontendUrl}/donation?payment=error&orderId={orderId}"
                 };
             }
 
