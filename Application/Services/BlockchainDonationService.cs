@@ -64,11 +64,22 @@ namespace Sindika.AspNet.app015.Application.Services.Blockchain
                 var callbackUrl = $"{_frontendUrl}/donation?payment=completed&orderId={orderId}";
                 snapRequest.Callbacks = new CallbackSettings
                 {
-                    Finish = callbackUrl,
-                    Pending = $"{_frontendUrl}/donation?payment=pending&orderId={orderId}",
-                    Error = $"{_frontendUrl}/donation?payment=error&orderId={orderId}"
+                    Finish = $"{_frontendUrl}/donation/detail-donation",
+                    Pending = $"{_frontendUrl}/donation/detail-donation",
+                    Error = $"{_frontendUrl}/donation/detail-donation"
                 };
             }
+
+            // if (!string.IsNullOrEmpty(_frontendUrl))
+            // {
+            //     var callbackUrl = $"{_frontendUrl}/donation?payment=completed&orderId={orderId}";
+            //     snapRequest.Callbacks = new CallbackSettings
+            //     {
+            //         Finish = callbackUrl,
+            //         Pending = $"{_frontendUrl}/donation?payment=pending&orderId={orderId}",
+            //         Error = $"{_frontendUrl}/donation?payment=error&orderId={orderId}"
+            //     };
+            // }
 
             var response = await _midtransClient.Snap.CreateTransactionAsync(snapRequest);
 
