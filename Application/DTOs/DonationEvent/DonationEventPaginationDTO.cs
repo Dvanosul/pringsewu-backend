@@ -3,7 +3,7 @@ using Sindika.AspNet.app015.Application.DTOs.Category;
 
 namespace Sindika.AspNet.app015.Application.DTOs.DonationEvent
 {
-    public class DonationEventDTO
+    public class DonationEventPaginationDTO : PaginationBaseItem
     {
         public Guid Id { get; set; }
         public Guid CategoryId { get; set; }
@@ -14,6 +14,6 @@ namespace Sindika.AspNet.app015.Application.DTOs.DonationEvent
         public string ImgUrl { get; set; } = string.Empty;
         public DateTimeOffset StartDate { get; set; }
         public DateTimeOffset EndDate { get; set; }
-        public DateTimeOffset CreatedDate { get; set; }
+        public int GalleryCount { get; set; }
     }
 }

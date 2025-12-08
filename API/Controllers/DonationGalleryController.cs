@@ -30,8 +30,8 @@ namespace Sindika.AspNet.app015.API.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromForm] CreateDonationGalleryRequest request)
         {
-            var param = request.Adapt<CreateDonationGalleryParam>();
-            var id = await _donationGalleryService.CreateWithImageAsync(param, request.Image);
+            var param = request.Adapt<DonationGalleryParam>();
+            var id = await _donationGalleryService.CreateWithImageAsync(param, request.ImgUrl);
             return Ok(ResponseHelper.Success<object>(new { Id = id }, "Create donation gallery successfully", _donationGalleryService.GetInfo()));
         }
 
@@ -39,8 +39,8 @@ namespace Sindika.AspNet.app015.API.Controllers
         [HttpPut("update/{id}")]
         public async Task<IActionResult> Update([FromForm] UpdateDonationGalleryRequest request, [FromRoute] Guid id)
         {
-            var param = request.Adapt<UpdateDonationGalleryParam>();
-            await _donationGalleryService.UpdateWithImageAsync(param, id, request.Image);
+            var param = request.Adapt<DonationGalleryParam>();
+            await _donationGalleryService.UpdateWithImageAsync(param, id, request.ImgUrl);
             return Ok(ResponseHelper.Success<object>(null, "Update donation gallery successfully", _donationGalleryService.GetInfo()));
         }
 

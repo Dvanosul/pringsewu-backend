@@ -39,6 +39,7 @@ namespace Sindika.AspNet.app015.Extensions
             services.AddScoped<ILocationRepository, LocationRepository>();
             services.AddScoped<IDonationEventRepository, DonationEventRepository>();
             services.AddScoped<IDonationGalleryRepository, DonationGalleryRepository>();
+            services.AddScoped<ICategoryRepository, CategoryRepository>();
 
             return services;
         }

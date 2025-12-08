@@ -1,5 +1,6 @@
 using Sindika.AspNet.app015.Domain.Entities;
 using Sindika.AspNet.app015.Application.DTOs.DonationGallery;
+using Sindika.AspNet.app015.Application.DTOs.DonationEvent;
 using Sindika.AspNet.app015.Application.Interfaces.Repositories;
 using Sindika.AspNet.app015.Application.Interfaces.Services;
 using Sindika.AspNet.app015.Infrastructure.DataContext;
@@ -20,7 +21,7 @@ namespace Sindika.AspNet.app015.Application.Services
         Context,
         DonationGalleryDTO,
         DonationGalleryPaginationDTO,
-        CreateDonationGalleryParam,
+        DonationGalleryParam,
         DonationGallery,
         IDonationGalleryRepository>, IDonationGalleryService
     {
@@ -42,7 +43,7 @@ namespace Sindika.AspNet.app015.Application.Services
             _fileService = fileService;
         }
 
-        public new async Task<Guid> CreateAsync(CreateDonationGalleryParam param)
+        public new async Task<Guid> CreateAsync(DonationGalleryParam param)
         {
             await _unitOfWork.BeginTransactionAsync();
             try
@@ -72,7 +73,7 @@ namespace Sindika.AspNet.app015.Application.Services
             }
         }
 
-        public async Task<Guid> CreateWithImageAsync(CreateDonationGalleryParam param, IFormFile image)
+        public async Task<Guid> CreateWithImageAsync(DonationGalleryParam param, IFormFile image)
         {
             var validationResult = ValidateImageFile(image);
             if (!validationResult.IsValid)
@@ -132,7 +133,7 @@ namespace Sindika.AspNet.app015.Application.Services
             }
         }
 
-        public async Task<Guid> UpdateAsync(UpdateDonationGalleryParam param, Guid id)
+        public new async Task<Guid> UpdateAsync(DonationGalleryParam param, Guid id)
         {
             await _unitOfWork.BeginTransactionAsync();
             try
@@ -164,7 +165,7 @@ namespace Sindika.AspNet.app015.Application.Services
             }
         }
 
-        public async Task<Guid> UpdateWithImageAsync(UpdateDonationGalleryParam param, Guid id, IFormFile? image)
+        public async Task<Guid> UpdateWithImageAsync(DonationGalleryParam param, Guid id, IFormFile? image)
         {
             var existingGallery = await _repository.GetAsync(id)
                 ?? throw new NotFoundException("Gallery not found.");
@@ -265,11 +266,10 @@ namespace Sindika.AspNet.app015.Application.Services
                 var entity = await _repository.GetAsync(id)
                     ?? throw new NotFoundException($"Gallery with ID {id} not found");
 
-                var eventEntity = await _eventRepository.GetAsync(entity.EventId);
+                var eventEntity = await _eventRepository.GetAsync(entity.DonationEventId);
 
                 var result = entity.Adapt<DonationGalleryDTO>();
-                result.EventCode = eventEntity?.Code ?? string.Empty;
-                result.EventName = eventEntity?.Name ?? string.Empty;
+                result.DonationEvent = eventEntity?.Adapt<DonationEventDTO>();
 
                 AppendRecords(entity.Id.ToString());
                 return result;
@@ -325,9 +325,8 @@ namespace Sindika.AspNet.app015.Application.Services
                 foreach (var item in itemCountResponse.Items)
                 {
                     var dto = item.Adapt<DonationGalleryPaginationDTO>();
-                    var eventEntity = await _eventRepository.GetAsync(item.EventId);
-                    dto.EventCode = eventEntity?.Code ?? string.Empty;
-                    dto.EventName = eventEntity?.Name ?? string.Empty;
+                    var eventEntity = await _eventRepository.GetAsync(item.DonationEventId);
+                    dto.DonationEvent = eventEntity?.Adapt<DonationEventDTO>();
                     items.Add(dto);
                 }
 
@@ -365,8 +364,7 @@ namespace Sindika.AspNet.app015.Application.Services
         private DonationGalleryDTO MapToDTO(DonationGallery entity)
         {
             var dto = entity.Adapt<DonationGalleryDTO>();
-            dto.EventCode = entity.Event?.Code ?? string.Empty;
-            dto.EventName = entity.Event?.Name ?? string.Empty;
+            dto.DonationEvent = entity.DonationEvent?.Adapt<DonationEventDTO>();
             return dto;
         }
     }

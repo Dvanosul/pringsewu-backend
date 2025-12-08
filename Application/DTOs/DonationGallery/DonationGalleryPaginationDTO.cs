@@ -3,7 +3,7 @@ using Sindika.AspNet.app015.Application.DTOs.DonationEvent;
 
 namespace Sindika.AspNet.app015.Application.DTOs.DonationGallery
 {
-    public class DonationGalleryDTO
+    public class DonationGalleryPaginationDTO : PaginationBaseItem
     {
         public Guid Id { get; set; }
         public Guid DonationEventId { get; set; }

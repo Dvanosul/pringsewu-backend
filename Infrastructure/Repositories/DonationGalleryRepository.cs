@@ -12,11 +12,12 @@ namespace Sindika.AspNet.app015.Infrastructure.Repositories
     {
         public DonationGalleryRepository(IUnitOfWork<Context> unitOfWork) : base(unitOfWork) { }
 
-        public async Task<List<DonationGallery>> GetByEventIdAsync(Guid eventId)
+        public async Task<List<DonationGallery>> GetByEventIdAsync(Guid DonationEventId)
         {
             return await _dbSet
                 .TagWithCallSiteGlobal()
-                .Where(g => g.IsActive && g.EventId == eventId)
+                .Include(g => g.DonationEvent)
+                .Where(g => g.IsActive && g.DonationEventId == DonationEventId)
                 .OrderByDescending(g => g.CreatedDate)
                 .ToListAsync();
         }
@@ -25,8 +26,8 @@ namespace Sindika.AspNet.app015.Infrastructure.Repositories
         {
             return await _dbSet
                 .TagWithCallSiteGlobal()
-                .Include(g => g.Event)
-                .Where(g => g.IsActive && g.Event != null && g.Event.Code == eventCode)
+                .Include(g => g.DonationEvent)
+                .Where(g => g.IsActive && g.DonationEvent != null && g.DonationEvent.Code == eventCode)
                 .OrderByDescending(g => g.CreatedDate)
                 .ToListAsync();
         }

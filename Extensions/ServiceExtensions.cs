@@ -42,6 +42,7 @@ namespace Sindika.AspNet.app015.Extensions
             services.AddScoped<IUserInfoService, UserInfoService>();
 
             services.AddScoped<IGenderService, GenderService>();
+            services.AddScoped<ICategoryService, CategoryService>();
 
             services.AddScoped<ICountryService, CountryService>();
             services.AddScoped<IProvinceService, ProvinceService>();

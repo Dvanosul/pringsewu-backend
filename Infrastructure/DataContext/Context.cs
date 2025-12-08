@@ -29,6 +29,7 @@ namespace Sindika.AspNet.app015.Infrastructure.DataContext
 
         public DbSet<DonationEvent> DonationEvents => Set<DonationEvent>();
         public DbSet<DonationGallery> DonationGalleries => Set<DonationGallery>();
+        public DbSet<Category> Categories => Set<Category>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

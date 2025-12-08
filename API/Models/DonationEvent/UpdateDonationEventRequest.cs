@@ -7,34 +7,27 @@ namespace Sindika.AspNet.app015.API.Models.DonationEvent
     public class UpdateDonationEventRequest
     {
         [Mandatory]
+        public Guid CategoryId { get; set; }
+        
+        [Mandatory]
+        [MinLength(3)]
+        [MaxLength(100)]
+        public string Code { get; set; } = string.Empty;
+
+        [Mandatory]
         [MinLength(3)]
         [MaxLength(255)]
-        [JsonPropertyName("name")]
         public string Name { get; set; } = string.Empty;
 
         [MaxLength(1000)]
-        [JsonPropertyName("description")]
         public string Description { get; set; } = string.Empty;
 
-        [JsonPropertyName("image")]
-        public IFormFile? Image { get; set; }
+        public IFormFile? ImgUrl { get; set; }
 
         [Mandatory]
-        [JsonPropertyName("startDate")]
         public DateTimeOffset StartDate { get; set; }
 
         [Mandatory]
-        [JsonPropertyName("endDate")]
         public DateTimeOffset EndDate { get; set; }
-
-        [JsonPropertyName("isActive")]
-        public bool IsActive { get; set; }
-    }
-
-    public class UpdateDonationEventStatusRequest
-    {
-        [Mandatory]
-        [JsonPropertyName("isActive")]
-        public bool IsActive { get; set; }
     }
 }
