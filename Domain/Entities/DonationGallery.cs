@@ -4,45 +4,45 @@ using Sindika.AspNet.Common.Interfaces;
 
 namespace Sindika.AspNet.app015.Domain.Entities
 {
-    [Table("dbs015_donation_gallery")]
+    [Table("dbs015_donationgallery")]
     public class DonationGallery : IBaseEntity
     {
         [Key]
-        [Column("donation_gallery_id")]
+        [Column("donationgallery_id")]
         public Guid Id { get; set; }
 
-        [Column("donation_gallery_eventid")]
-        public Guid EventId { get; set; }
-        [ForeignKey("EventId")]
-        public virtual DonationEvent? Event { get; set; }
+        [Column("donationgallery_eventid")]
+        public Guid DonationEventId { get; set; }
+        [ForeignKey(nameof(DonationEventId))]
+        public virtual DonationEvent? DonationEvent { get; set; }
 
-        [Column("donation_gallery_imgurl")]
+        [Column("donationgallery_imgurl")]
         [MaxLength(500)]
         public string ImgUrl { get; set; } = string.Empty;
 
-        [Column("donation_gallery_description")]
+        [Column("donationgallery_description")]
         [MaxLength(1000)]
         public string Description { get; set; } = string.Empty;
 
-        [Column("donation_gallery_isactive")]
+        [Column("donationgallery_isactive")]
         public bool IsActive { get; set; } = true;
 
-        [Column("donation_gallery_createddate")]
+        [Column("donationgallery_createddate")]
         public DateTimeOffset CreatedDate { get; set; } = DateTimeOffset.UtcNow;
 
-        [Column("donation_gallery_updateddate")]
+        [Column("donationgallery_updateddate")]
         public DateTimeOffset? UpdatedDate { get; set; }
 
-        [Column("donation_gallery_deleteddate")]
+        [Column("donationgallery_deleteddate")]
         public DateTimeOffset? DeletedDate { get; set; }
 
-        [Column("donation_gallery_createdby")]
+        [Column("donationgallery_createdby")]
         public string? CreatedBy { get; set; }
 
-        [Column("donation_gallery_updatedby")]
+        [Column("donationgallery_updatedby")]
         public string? UpdatedBy { get; set; }
 
-        [Column("donation_gallery_deletedby")]
+        [Column("donationgallery_deletedby")]
         public string? DeletedBy { get; set; }
 
     }
