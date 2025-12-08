@@ -12,6 +12,7 @@ using Mapster;
 using Sindika.AspNet.Exceptions.NotFound;
 using Sindika.AspNet.Exceptions.BadRequest;
 using Microsoft.AspNetCore.Http;
+using Sindika.AspNet.app015.Application.DTOs.Category;
 
 namespace Sindika.AspNet.app015.Application.Services
 {
@@ -20,11 +21,12 @@ namespace Sindika.AspNet.app015.Application.Services
         Context,
         DonationEventDTO,
         DonationEventPaginationDTO,
-        CreateDonationEventParam,
+        DonationEventParam,
         DonationEvent,
         IDonationEventRepository>, IDonationEventService
     {
         private readonly IDonationGalleryRepository _galleryRepository;
+        private readonly ICategoryRepository _categoryRepository;
         private readonly IFileService _fileService;
         private readonly string[] _allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
         private const long MaxFileSize = 5 * 1024 * 1024;
@@ -35,14 +37,16 @@ namespace Sindika.AspNet.app015.Application.Services
             IUnitOfWork<Context> unitOfWork,
             IDonationEventRepository repository,
             IDonationGalleryRepository galleryRepository,
+            ICategoryRepository categoryRepository,
             IFileService fileService
         ) : base(configuration, logger, unitOfWork, repository)
         {
             _galleryRepository = galleryRepository;
+            _categoryRepository = categoryRepository;
             _fileService = fileService;
         }
 
-        public async Task<Guid> CreateWithImageAsync(CreateDonationEventParam param, IFormFile image)
+        public async Task<Guid> CreateWithImageAsync(DonationEventParam param, IFormFile image)
         {
             var validationResult = ValidateImageFile(image);
             if (!validationResult.IsValid)
@@ -54,6 +58,9 @@ namespace Sindika.AspNet.app015.Application.Services
             try
             {
                 StartOperation("INSERT");
+
+                var category = await _categoryRepository.GetAsync(param.CategoryId)
+                    ?? throw new NotFoundException("Category not found.");
 
                 if (await _repository.IsCodeExistAsync(param.Code))
                 {
@@ -94,7 +101,28 @@ namespace Sindika.AspNet.app015.Application.Services
             }
         }
 
+        public new async Task<DonationEventDTO> GetAsync(Guid id)
+        {
+            try
+            {
+                StartOperation("GET");
 
+                var entity = await _repository.GetAsync(id)
+                    ?? throw new NotFoundException($"Event with ID {id} not found");
+
+                var category = await _categoryRepository.GetAsync(entity.CategoryId);
+
+                var result = entity.Adapt<DonationEventDTO>();
+                result.Category = category == null ? null : category.Adapt<CategoryDTO>();
+
+                AppendRecords(entity.Id.ToString());
+                return result;
+            }
+            finally
+            {
+                EndOperation();
+            }
+        }
 
         public async Task<List<DonationEventDTO>> GetActiveEventsAsync()
         {
@@ -103,7 +131,15 @@ namespace Sindika.AspNet.app015.Application.Services
                 StartOperation("GET");
 
                 var entities = await _repository.GetActiveEventsAsync();
-                var result = entities.Adapt<List<DonationEventDTO>>();
+                var result = new List<DonationEventDTO>();
+
+                foreach (var entity in entities)
+                {
+                    var category = await _categoryRepository.GetAsync(entity.CategoryId);
+                    var dto = entity.Adapt<DonationEventDTO>();
+                    dto.Category = category == null ? null : category.Adapt<CategoryDTO>();
+                    result.Add(dto);
+                }
 
                 AppendRecords(null, entities.Select(e => e.Id.ToString()).ToList());
                 return result;
@@ -114,7 +150,7 @@ namespace Sindika.AspNet.app015.Application.Services
             }
         }
 
-        public async Task<Guid> UpdateWithImageAsync(UpdateDonationEventParam param, Guid id, IFormFile? image)
+        public async Task<Guid> UpdateWithImageAsync(DonationEventParam param, Guid id, IFormFile? image)
         {
             if (image != null)
             {
@@ -129,6 +165,9 @@ namespace Sindika.AspNet.app015.Application.Services
             try
             {
                 StartOperation("UPDATE");
+
+                var category = await _categoryRepository.GetAsync(param.CategoryId)
+                    ?? throw new NotFoundException("Category not found.");
 
                 if (param.EndDate <= param.StartDate)
                 {
@@ -168,7 +207,7 @@ namespace Sindika.AspNet.app015.Application.Services
             }
         }
 
-        public async Task<Guid> UpdateStatusAsync(UpdateDonationEventStatusParam param, Guid id)
+        public async Task<Guid> UpdateStatusAsync(bool isActive, Guid id)
         {
             await _unitOfWork.BeginTransactionAsync();
             try
@@ -177,7 +216,7 @@ namespace Sindika.AspNet.app015.Application.Services
 
                 var entity = await _repository.GetAsync(id) ?? throw new NotFoundException("Event not found.");
 
-                entity.IsActive = param.IsActive;
+                entity.IsActive = isActive;
                 entity.UpdatedDate = DateTimeOffset.UtcNow;
 
                 await _repository.UpdateAsync(entity);
@@ -273,17 +312,22 @@ namespace Sindika.AspNet.app015.Application.Services
                 StartOperation("GET");
 
                 var itemCountResponse = await _repository.GetPaginationAsync(paginationQuery);
-                var items = itemCountResponse.Items.Adapt<List<DonationEventPaginationDTO>>();
+                var items = new List<DonationEventPaginationDTO>();
 
-                var eventIds = itemCountResponse.Items.Select(i => i.Id).ToList();
-                foreach (var item in items)
+                foreach (var entity in itemCountResponse.Items)
                 {
-                    var galleries = await _galleryRepository.GetByEventIdAsync(item.Id);
-                    item.GalleryCount = galleries.Count;
+                    var category = await _categoryRepository.GetAsync(entity.CategoryId);
+                    var dto = entity.Adapt<DonationEventPaginationDTO>();
+                    dto.Category = category == null ? null : category.Adapt<CategoryDTO>();
+
+                    var galleries = await _galleryRepository.GetByEventIdAsync(entity.Id);
+                    dto.GalleryCount = galleries.Count;
+
+                    items.Add(dto);
                 }
 
                 var result = PaginationUtils.GenerateResponseWithIndex(paginationQuery, items, itemCountResponse.Count);
-                AppendRecords(null, eventIds.Select(id => id.ToString()).ToList());
+                AppendRecords(null, itemCountResponse.Items.Select(i => i.Id.ToString()).ToList());
                 return result;
             }
             finally

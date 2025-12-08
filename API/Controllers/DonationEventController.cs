@@ -30,8 +30,8 @@ namespace Sindika.AspNet.app015.API.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromForm] CreateDonationEventRequest request)
         {
-            var param = request.Adapt<CreateDonationEventParam>();
-            var id = await _donationEventService.CreateWithImageAsync(param, request.Image);
+            var param = request.Adapt<DonationEventParam>();
+            var id = await _donationEventService.CreateWithImageAsync(param, request.ImgUrl);
             return Ok(ResponseHelper.Success<object>(new { Id = id }, "Create donation event successfully", _donationEventService.GetInfo()));
         }
 
@@ -39,18 +39,9 @@ namespace Sindika.AspNet.app015.API.Controllers
         [HttpPut("update/{id}")]
         public async Task<IActionResult> Update([FromForm] UpdateDonationEventRequest request, [FromRoute] Guid id)
         {
-            var param = request.Adapt<UpdateDonationEventParam>();
-            await _donationEventService.UpdateWithImageAsync(param, id, request.Image);
+            var param = request.Adapt<DonationEventParam>();
+            await _donationEventService.UpdateWithImageAsync(param, id, request.ImgUrl);
             return Ok(ResponseHelper.Success<object>(null, "Update donation event successfully", _donationEventService.GetInfo()));
-        }
-
-        [Event("update")]
-        [HttpPut("update/{id}/status")]
-        public async Task<IActionResult> UpdateStatus([FromBody] BaseRequest<UpdateDonationEventStatusRequest> request, [FromRoute] Guid id)
-        {
-            var param = request.Data.Adapt<UpdateDonationEventStatusParam>();
-            await _donationEventService.UpdateStatusAsync(param, id);
-            return Ok(ResponseHelper.Success<object>(null, "Update donation event status successfully", _donationEventService.GetInfo()));
         }
 
         [Event("view")]

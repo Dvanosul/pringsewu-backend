@@ -11,6 +11,12 @@ namespace Sindika.AspNet.app015.Domain.Entities
         [Column("donation_event_id")]
         public Guid Id { get; set; }
 
+        [Column("donation_event_categoryid")]
+        public Guid CategoryId { get; set; }
+
+        [ForeignKey("CategoryId")]
+        public virtual Category? Category { get; set; }
+
         [Column("donation_event_code")]
         [MaxLength(100)]
         public string Code { get; set; } = string.Empty;

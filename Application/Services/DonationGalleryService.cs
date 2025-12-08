@@ -20,7 +20,7 @@ namespace Sindika.AspNet.app015.Application.Services
         Context,
         DonationGalleryDTO,
         DonationGalleryPaginationDTO,
-        CreateDonationGalleryParam,
+        DonationGalleryParam,
         DonationGallery,
         IDonationGalleryRepository>, IDonationGalleryService
     {
@@ -42,7 +42,7 @@ namespace Sindika.AspNet.app015.Application.Services
             _fileService = fileService;
         }
 
-        public new async Task<Guid> CreateAsync(CreateDonationGalleryParam param)
+        public new async Task<Guid> CreateAsync(DonationGalleryParam param)
         {
             await _unitOfWork.BeginTransactionAsync();
             try
@@ -72,7 +72,7 @@ namespace Sindika.AspNet.app015.Application.Services
             }
         }
 
-        public async Task<Guid> CreateWithImageAsync(CreateDonationGalleryParam param, IFormFile image)
+        public async Task<Guid> CreateWithImageAsync(DonationGalleryParam param, IFormFile image)
         {
             var validationResult = ValidateImageFile(image);
             if (!validationResult.IsValid)
@@ -132,7 +132,7 @@ namespace Sindika.AspNet.app015.Application.Services
             }
         }
 
-        public async Task<Guid> UpdateAsync(UpdateDonationGalleryParam param, Guid id)
+        public new async Task<Guid> UpdateAsync(DonationGalleryParam param, Guid id)
         {
             await _unitOfWork.BeginTransactionAsync();
             try
@@ -164,7 +164,7 @@ namespace Sindika.AspNet.app015.Application.Services
             }
         }
 
-        public async Task<Guid> UpdateWithImageAsync(UpdateDonationGalleryParam param, Guid id, IFormFile? image)
+        public async Task<Guid> UpdateWithImageAsync(DonationGalleryParam param, Guid id, IFormFile? image)
         {
             var existingGallery = await _repository.GetAsync(id)
                 ?? throw new NotFoundException("Gallery not found.");
