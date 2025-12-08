@@ -1,4 +1,4 @@
-﻿using Sindika.AspNet.Common.Interfaces;
+using Sindika.AspNet.Common.Interfaces;
 
 namespace Sindika.AspNet.app015.Application.Interfaces.Services
 {
