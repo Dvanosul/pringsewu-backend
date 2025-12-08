@@ -1,4 +1,3 @@
-﻿
 using Microsoft.EntityFrameworkCore;
 using Sindika.AspNet.Authentication.Data;
 using Sindika.AspNet.app015.Domain.Entities;
@@ -28,16 +27,19 @@ namespace Sindika.AspNet.app015.Infrastructure.DataContext
         public DbSet<Gender> Genders => Set<Gender>();
         public DbSet<EmployeeUserType> EmployeeUserTypes => Set<EmployeeUserType>();
 
+        public DbSet<DonationEvent> DonationEvents => Set<DonationEvent>();
+        public DbSet<DonationGallery> DonationGalleries => Set<DonationGallery>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<DeveloperUserType>().ToTable(USER_USERTYPE_TABLENAME);
             modelBuilder.Entity<DeveloperUserType>().HasIndex(c => new { c.DeveloperId });
-            
+
             modelBuilder.Entity<EmployeeUserType>().ToTable(USER_USERTYPE_TABLENAME);
             modelBuilder.Entity<EmployeeUserType>().HasIndex(c => new { c.EmployeeId });
-            
+
             modelBuilder.Entity<Developer>().HasIndex(c => new { c.IsActive, c.Code });
             modelBuilder.Entity<Employee>().HasIndex(c => new { c.IsActive, c.Code });
         }

@@ -1,4 +1,3 @@
-﻿
 using Sindika.AspNet.Authentication.Interfaces;
 using Sindika.AspNet.Authentication.Services;
 using Sindika.AspNet.Common.Interfaces;
@@ -52,26 +51,21 @@ namespace Sindika.AspNet.app015.Extensions
 
             services.AddScoped<ILocationService, LocationService>();
 
+            // Donation Event and Gallery Services (PostgreSQL-based)
+            services.AddScoped<IDonationEventService, DonationEventService>();
+            services.AddScoped<IDonationGalleryService, DonationGalleryService>();
+
+            // Blockchain Services - communicate with VaFund API (for Donations and Withdrawals only)
             services.AddScoped<IBlockchainDonationService, BlockchainDonationService>();
-            services.AddScoped<IBlockchainEventService, BlockchainEventService>();
             services.AddScoped<IBlockchainWithdrawalService, BlockchainWithdrawalService>();
-            services.AddScoped<IBlockchainGalleryService, BlockchainGalleryService>();
+
+            // Pending Donation Service - uses Redis
             services.AddScoped<IPendingDonationService, PendingDonationService>();
+
+            // Midtrans Payment Service
             services.AddScoped<IMidtransService, MidtransService>();
 
             return services;
         }
     }
 }
-
-            // Blockchain Services - communicate with VaFund API
-            // services.AddScoped<IBlockchainDonationService, BlockchainDonationService>();
-            // services.AddScoped<IBlockchainEventService, BlockchainEventService>();
-            // services.AddScoped<IBlockchainWithdrawalService, BlockchainWithdrawalService>();
-            // services.AddScoped<IBlockchainGalleryService, BlockchainGalleryService>();
-
-            // Pending Donation Service - uses Redis
-            // services.AddScoped<IPendingDonationService, PendingDonationService>();
-
-            // Midtrans Payment Service
-            // services.AddScoped<IMidtransService, MidtransService>();

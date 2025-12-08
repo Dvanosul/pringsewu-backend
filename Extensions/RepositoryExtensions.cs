@@ -1,5 +1,3 @@
-﻿
-
 using Sindika.AspNet.app015.Application.Interfaces.Repositories;
 using Sindika.AspNet.app015.Infrastructure.Repositories;
 
@@ -39,6 +37,8 @@ namespace Sindika.AspNet.app015.Extensions
             services.AddScoped<IDistrictRepository, DistrictRepository>();
             services.AddScoped<ISubDistrictRepository, SubDistrictRepository>();
             services.AddScoped<ILocationRepository, LocationRepository>();
+            services.AddScoped<IDonationEventRepository, DonationEventRepository>();
+            services.AddScoped<IDonationGalleryRepository, DonationGalleryRepository>();
 
             return services;
         }

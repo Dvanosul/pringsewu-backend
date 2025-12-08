@@ -1,4 +1,4 @@
-﻿using Sindika.AspNet.app015.Application.Interfaces.Services;
+using Sindika.AspNet.app015.Application.Interfaces.Services;
 using Sindika.AspNet.Storage.Interfaces;
 using Sindika.AspNet.Common.Interfaces;
 using Sindika.AspNet.Common.Services;
