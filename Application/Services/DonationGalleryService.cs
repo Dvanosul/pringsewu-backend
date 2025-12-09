@@ -81,20 +81,41 @@ namespace Sindika.AspNet.app015.Application.Services
                 throw new BadRequestException("ERR-VAL-001", validationResult.ErrorMessage);
             }
 
-            var eventEntity = await _eventRepository.GetAsync(param.DonationEventId)
-                ?? throw new NotFoundException("Event not found.");
+            await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                StartOperation("INSERT");
 
-            var id = await CreateAsync(param);
+                var eventEntity = await _eventRepository.GetAsync(param.DonationEventId)
+                    ?? throw new NotFoundException("Event not found.");
 
-            var extension = Path.GetExtension(image.FileName).ToLowerInvariant();
-            var fileName = $"donation-galleries/{id}/image{extension}";
+                var entity = param.Adapt<DonationGallery>();
+                entity.CreatedDate = DateTimeOffset.UtcNow;
 
-            using var stream = image.OpenReadStream();
-            await _fileService.UploadFile(fileName, stream);
+                Guid id = await _repository.CreateAsync(entity);
 
-            await UpdateImageAsync(id, fileName);
+                var extension = Path.GetExtension(image.FileName).ToLowerInvariant();
+                var fileName = $"donation-galleries/{id}/image{extension}";
 
-            return id;
+                using var stream = image.OpenReadStream();
+                await _fileService.UploadFile(fileName, stream);
+
+                entity.ImgUrl = fileName;
+                await _repository.UpdateAsync(entity);
+
+                AppendRecords(id.ToString());
+                await _unitOfWork.CommitAsync();
+                return id;
+            }
+            catch (Exception)
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+            finally
+            {
+                EndOperation();
+            }
         }
 
         public async Task<List<DonationGalleryDTO>> GetByEventIdAsync(Guid DonationEventId)
@@ -167,9 +188,6 @@ namespace Sindika.AspNet.app015.Application.Services
 
         public async Task<Guid> UpdateWithImageAsync(DonationGalleryParam param, Guid id, IFormFile? image)
         {
-            var existingGallery = await _repository.GetAsync(id)
-                ?? throw new NotFoundException("Gallery not found.");
-
             if (image != null)
             {
                 var validationResult = ValidateImageFile(image, isRequired: false);
@@ -179,23 +197,45 @@ namespace Sindika.AspNet.app015.Application.Services
                 }
             }
 
-            var eventEntity = await _eventRepository.GetAsync(param.DonationEventId)
-                ?? throw new NotFoundException("Event not found.");
-
-            await UpdateAsync(param, id);
-
-            if (image != null)
+            await _unitOfWork.BeginTransactionAsync();
+            try
             {
-                var extension = Path.GetExtension(image.FileName).ToLowerInvariant();
-                var fileName = $"donation-galleries/{id}/image{extension}";
+                StartOperation("UPDATE");
 
-                using var stream = image.OpenReadStream();
-                await _fileService.UploadFile(fileName, stream);
+                var entity = await _repository.GetAsync(id) ?? throw new NotFoundException("Gallery not found.");
 
-                await UpdateImageAsync(id, fileName);
+                var eventEntity = await _eventRepository.GetAsync(param.DonationEventId)
+                    ?? throw new NotFoundException("Event not found.");
+
+                param.Adapt(entity);
+                entity.UpdatedDate = DateTimeOffset.UtcNow;
+
+                if (image != null)
+                {
+                    var extension = Path.GetExtension(image.FileName).ToLowerInvariant();
+                    var fileName = $"donation-galleries/{id}/image{extension}";
+
+                    using var stream = image.OpenReadStream();
+                    await _fileService.UploadFile(fileName, stream);
+
+                    entity.ImgUrl = fileName;
+                }
+
+                await _repository.UpdateAsync(entity);
+
+                AppendRecords(entity.Id.ToString());
+                await _unitOfWork.CommitAsync();
+                return entity.Id;
             }
-
-            return id;
+            catch (Exception)
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+            finally
+            {
+                EndOperation();
+            }
         }
 
         public async Task<Guid> UpdateImageAsync(Guid id, string imgUrl)
