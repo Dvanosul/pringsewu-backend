@@ -7,7 +7,7 @@ namespace Sindika.AspNet.app015.API.Models.DonationGallery
     public class UpdateDonationGalleryRequest
     {
         [Mandatory]
-        public Guid EventId { get; set; }
+        public Guid DonationEventId { get; set; }
 
         public IFormFile? ImgUrl { get; set; }
 

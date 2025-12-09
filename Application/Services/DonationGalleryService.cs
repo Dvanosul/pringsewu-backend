@@ -50,7 +50,7 @@ namespace Sindika.AspNet.app015.Application.Services
             {
                 StartOperation("INSERT");
 
-                var eventEntity = await _eventRepository.GetAsync(param.EventId)
+                var eventEntity = await _eventRepository.GetAsync(param.DonationEventId)
                     ?? throw new NotFoundException("Event not found.");
 
                 var entity = param.Adapt<DonationGallery>();
@@ -81,7 +81,7 @@ namespace Sindika.AspNet.app015.Application.Services
                 throw new BadRequestException("ERR-VAL-001", validationResult.ErrorMessage);
             }
 
-            var eventEntity = await _eventRepository.GetAsync(param.EventId)
+            var eventEntity = await _eventRepository.GetAsync(param.DonationEventId)
                 ?? throw new NotFoundException("Event not found.");
 
             var id = await CreateAsync(param);
@@ -97,13 +97,13 @@ namespace Sindika.AspNet.app015.Application.Services
             return id;
         }
 
-        public async Task<List<DonationGalleryDTO>> GetByEventIdAsync(Guid eventId)
+        public async Task<List<DonationGalleryDTO>> GetByEventIdAsync(Guid DonationEventId)
         {
             try
             {
                 StartOperation("GET");
 
-                var entities = await _repository.GetByEventIdAsync(eventId);
+                var entities = await _repository.GetByEventIdAsync(DonationEventId);
                 var result = entities.Select(e => MapToDTO(e)).ToList();
 
                 AppendRecords(null, entities.Select(e => e.Id.ToString()).ToList());
@@ -142,7 +142,7 @@ namespace Sindika.AspNet.app015.Application.Services
 
                 var entity = await _repository.GetAsync(id) ?? throw new NotFoundException("Gallery not found.");
 
-                var eventEntity = await _eventRepository.GetAsync(param.EventId)
+                var eventEntity = await _eventRepository.GetAsync(param.DonationEventId)
                     ?? throw new NotFoundException("Event not found.");
 
                 param.Adapt(entity);
@@ -179,7 +179,7 @@ namespace Sindika.AspNet.app015.Application.Services
                 }
             }
 
-            var eventEntity = await _eventRepository.GetAsync(param.EventId)
+            var eventEntity = await _eventRepository.GetAsync(param.DonationEventId)
                 ?? throw new NotFoundException("Event not found.");
 
             await UpdateAsync(param, id);
