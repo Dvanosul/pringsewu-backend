@@ -148,5 +148,37 @@ namespace Sindika.AspNet.app015.API.Controllers
                 ResponseHelper.Success<object>(null, "Password changed successfully", null, null)
             );
         }
+
+        [HttpPost("users/{userId:guid}/provision-password")]
+        public async Task<IActionResult> ProvisionLocalPassword(
+            [FromRoute] Guid userId,
+            [FromBody] BaseRequest<ProvisionPasswordRequest> request
+        )
+        {
+            var actorId =
+                User.FindFirst("user_id")?.Value.Adapt<Guid>()
+                ?? throw new UnauthorizedAccessAttemptException();
+
+            if (request.Data.Password != request.Data.ConfirmationPassword)
+            {
+                throw new BadRequestException(
+                    "VAL-GEN-002",
+                    "Password and confirmation password do not match."
+                );
+            }
+
+            var param = request.Data.Adapt<ProvisionPasswordParam>();
+            param.UserId = userId;
+
+            await _authService.ProvisionLocalPasswordAsync(actorId, param);
+            return Ok(
+                ResponseHelper.Success<object>(
+                    null,
+                    "Local password provisioned successfully",
+                    null,
+                    null
+                )
+            );
+        }
     }
 }

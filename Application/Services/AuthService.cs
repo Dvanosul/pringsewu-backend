@@ -263,6 +263,43 @@ namespace Sindika.AspNet.app015.Application.Services
                 EndOperation();
             }
         }
+
+        public async Task ProvisionLocalPasswordAsync(Guid actorUserId, ProvisionPasswordParam param)
+        {
+            await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                StartOperation("UPDATE");
+
+                var isSuper = await _userRepository.IsSuperAsync(actorUserId);
+                if (!isSuper)
+                {
+                    throw new UnauthorizedAccessAttemptException();
+                }
+
+                var targetUser = await _userRepository.GetByIdentifiersAsync(
+                    new Dictionary<string, object>
+                    {
+                        { "id", param.UserId },
+                        { "isactive", true },
+                    }
+                ) ?? throw new NotFoundException("User not found.");
+
+                targetUser.Password = BCrypt.Net.BCrypt.HashPassword(param.Password, workFactor: 12);
+
+                await _userRepository.UpdateAsync(targetUser);
+                await _unitOfWork.CommitAsync();
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+            finally
+            {
+                EndOperation();
+            }
+        }
         
         private async Task<List<string>> SynchronizeProfile(List<string> roles)
         {
